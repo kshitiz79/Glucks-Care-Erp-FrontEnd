@@ -1,0 +1,35 @@
+[
+    {
+      "id": 1,
+      "name": "Product A",
+      "salt": "Sodium XYZ",
+      "description": "Description for Product A",
+      "dosage": "100mg",
+      "image": "/product1.png"
+    },
+    {
+      "id": 2,
+      "name": "Product B",
+      "salt": "Sodium ABC",
+      "description": "Description for Product B",
+      "dosage": "50mg",
+      "image": "/product1.png"
+    },
+    {
+      "id": 3,
+      "name": "Product C",
+      "salt": "Sodium DEF",
+      "description": "Description for Product C",
+      "dosage": "75mg",
+      "image": "/product1.png"
+    },
+    {
+      "id": 4,
+      "name": "Product D",
+      "salt": "Sodium GHI",
+      "description": "Description for Product D",
+      "dosage": "150mg",
+      "image": "/product4.png"
+    }
+  ]
+  
