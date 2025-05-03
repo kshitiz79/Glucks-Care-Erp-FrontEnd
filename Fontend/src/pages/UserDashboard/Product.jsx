@@ -1,18 +1,27 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import productData from '../../data/data.json';
+import BASE_URL from '../../BaseUrl/baseUrl';
 
 const ProductList = () => {
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    fetch(`${BASE_URL}/api/products`)
+      .then((res) => res.json())
+      .then((data) => setProducts(data))
+      .catch((err) => console.error(err));
+  }, []);
+
   return (
-    <div className="p-8  min-h-screen">
+    <div className="p-8 min-h-screen">
       <h2 className="text-3xl font-extrabold text-center text-blue-800 mb-8 drop-shadow-lg">
         Our Products
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-        {productData.map((product) => (
+        {products.map((product) => (
           <Link
-            to={`/product/${product.id}`}
-            key={product.id}
+            to={`/mr-dashboard/product/${product._id}`}
+            key={product._id}
             className="group block bg-white rounded-xl shadow-lg transform transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:scale-105"
             style={{ perspective: '1000px' }}
           >

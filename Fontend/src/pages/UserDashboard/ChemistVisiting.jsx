@@ -1,48 +1,52 @@
-// src/components/DoctorVisiting.jsx
+// src/components/ChemistVisiting.jsx
 import React, { useContext, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { AuthContext } from '../../context/AuthContext';
-import BASE_URL from '../../BaseUrl/baseUrl';
+import { AuthContext } from './../../context/AuthContext';
+import { fetchChemists, scheduleChemistVisit, fetchChemistVisits, confirmChemistVisit } from './../../api/chemistApi';
 
+const BASE_URL = 'http://localhost:5050';
 
-
-const DoctorVisiting = () => {
+const ChemistVisiting = () => {
   const { user } = useContext(AuthContext);
-  const [doctors, setDoctors] = useState([]);
+  const [chemists, setChemists] = useState([]);
   const [visits, setVisits] = useState([]);
   const [scheduledVisits, setScheduledVisits] = useState([]);
   const [confirmedVisits, setConfirmedVisits] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [selectedDoctorId, setSelectedDoctorId] = useState('');
+  const [selectedChemistId, setSelectedChemistId] = useState('');
   const [date, setDate] = useState('');
   const [notes, setNotes] = useState('');
 
-  const fetchDoctors = async () => {
+
+
+  const fetchChemistsList = async () => {
     try {
-      const res = await fetch(`${BASE_URL}/api/doctors`);
-      if (!res.ok) throw new Error('Failed to fetch doctors');
-      const data = await res.json();
-      setDoctors(data);
+      const response = await fetchChemists();
+      // Ensure data is an array; use response.Data if API returns an object
+      const data = Array.isArray(response) ? response : response.Data || [];
+      setChemists(data);
     } catch (error) {
       console.error(error);
-      setErrorMessage(error.message || 'Failed to fetch doctors');
+      setErrorMessage(error.message || 'Failed to fetch chemists');
       setShowErrorModal(true);
+      setChemists([]); // Ensure chemists remains an array on error
     }
   };
 
   const fetchVisits = async () => {
     if (!user) return;
     try {
-      const res = await fetch(`${BASE_URL}/api/doctor-visits/user/${user.id}`);
-      if (!res.ok) throw new Error('Failed to fetch visits');
-      const data = await res.json();
+      const response = await fetchChemistVisits(user.id);
+      // Ensure data is an array; use response.Data if API returns an object
+      const data = Array.isArray(response) ? response : response.Data || [];
       setVisits(data);
     } catch (error) {
       console.error(error);
       setErrorMessage(error.message || 'Failed to fetch visits');
       setShowErrorModal(true);
+      setVisits([]); // Ensure visits remains an array on error
     }
   };
 
@@ -54,7 +58,7 @@ const DoctorVisiting = () => {
   }, [visits]);
 
   useEffect(() => {
-    fetchDoctors();
+    fetchChemistsList();
   }, []);
 
   useEffect(() => {
@@ -63,30 +67,22 @@ const DoctorVisiting = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedDoctorId || !date || !notes || !user) {
+    if (!selectedChemistId || !date || !notes || !user) {
       setErrorMessage('Please fill all required fields.');
       setShowErrorModal(true);
       return;
     }
 
     try {
-      const res = await fetch(`${BASE_URL}/api/doctor-visits`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          doctorId: selectedDoctorId,
-          userId: user.id,
-          date,
-          notes,
-        }),
+      await scheduleChemistVisit({
+        chemistId: selectedChemistId,
+        userId: user.id,
+        date,
+        notes,
       });
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || 'Failed to schedule visit');
-      }
       await fetchVisits();
       setShowModal(false);
-      setSelectedDoctorId('');
+      setSelectedChemistId('');
       setDate('');
       setNotes('');
       setErrorMessage('Visit scheduled successfully!');
@@ -102,12 +98,12 @@ const DoctorVisiting = () => {
     try {
       let userLatitude, userLongitude;
   
-      // Try to get current location
+      // Try to get the current geolocation
       try {
         const position = await new Promise((resolve, reject) => {
           navigator.geolocation.getCurrentPosition(resolve, reject, {
             enableHighAccuracy: true,
-            timeout: 5000,
+            timeout: 10000,
             maximumAge: 0,
           });
         });
@@ -116,10 +112,11 @@ const DoctorVisiting = () => {
         console.log('Geolocation success:', { userLatitude, userLongitude });
       } catch (geolocationError) {
         console.warn('Geolocation failed, falling back to stored location:', geolocationError);
-        // Continue to send request, let backend handle fallback
+        // Handle the case if geolocation fails, possibly fallback to stored location
       }
   
-      const res = await fetch(`${BASE_URL}/api/doctor-visits/${visitId}/confirm`, {
+      // Sending the PUT request to the backend
+      const res = await fetch(`${BASE_URL}/api/chemists/visits/${visitId}/confirm`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -127,37 +124,41 @@ const DoctorVisiting = () => {
           userLongitude,
         }),
       });
+      
   
       const data = await res.json();
   
+      // Handle the backend response
       if (!res.ok) {
         throw new Error(data.message || 'Failed to confirm visit');
       }
   
-      if (data.status) {
+      // Show success or failure message based on backend response
+      if (data.success === "true") {
         setErrorMessage('Visit confirmed successfully!');
-        setShowErrorModal(true);
+        setShowErrorModal(true);  // Show success modal
       } else {
         setErrorMessage(data.message || 'Failed to confirm visit');
-        setShowErrorModal(true);
+        setShowErrorModal(true);  // Show error modal
       }
   
+      // Refresh the visits after confirmation
       await fetchVisits();
     } catch (error) {
       console.error(error);
       setErrorMessage(error.message || 'Failed to confirm visit');
-      setShowErrorModal(true);
+      setShowErrorModal(true);  // Show error modal in case of an exception
     }
   };
+  
   
 
   return (
     <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <div className="relative mb-12">
           <h2 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
-            <span className="text-indigo-600">🩺</span> Your Doctor Visits
+            <span className="text-indigo-600">🧪</span> Your Chemist Visits
           </h2>
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -169,7 +170,6 @@ const DoctorVisiting = () => {
           </motion.button>
         </div>
 
-        {/* Schedule Modal */}
         {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <motion.div
@@ -178,21 +178,21 @@ const DoctorVisiting = () => {
               exit={{ opacity: 0, scale: 0.95 }}
               className="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl"
             >
-              <h2 className="text-2xl font-semibold text-gray-900 mb-6">Schedule Doctor Visit</h2>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-6">Schedule Chemist Visit</h2>
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Choose Doctor <span className="text-red-500">*</span>
+                    Choose Chemist <span className="text-red-500">*</span>
                   </label>
                   <select
-                    value={selectedDoctorId}
-                    onChange={(e) => setSelectedDoctorId(e.target.value)}
+                    value={selectedChemistId}
+                    onChange={(e) => setSelectedChemistId(e.target.value)}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                   >
-                    <option value="">-- Select Doctor --</option>
-                    {doctors.map((doc) => (
-                      <option key={doc._id} value={doc._id}>
-                        {doc.name} ({doc.specialization})
+                    <option value="">-- Select Chemist --</option>
+                    {chemists.map((chem) => (
+                      <option key={chem._id} value={chem._id}>
+                        {chem.firmName}
                       </option>
                     ))}
                   </select>
@@ -240,7 +240,6 @@ const DoctorVisiting = () => {
           </div>
         )}
 
-        {/* Error/Success Modal */}
         {showErrorModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <motion.div
@@ -267,7 +266,6 @@ const DoctorVisiting = () => {
           </div>
         )}
 
-        {/* Scheduled Visits */}
         <div className="mb-12">
           <h3 className="text-2xl font-semibold text-gray-800 mb-6">Scheduled Visits</h3>
           {scheduledVisits.length === 0 ? (
@@ -289,15 +287,13 @@ const DoctorVisiting = () => {
                   className="bg-white rounded-xl shadow-md p-5 border border-gray-100 hover:shadow-lg transition-all duration-300"
                 >
                   <h4 className="text-lg font-semibold text-gray-900 mb-3">
-                    {visit.doctor?.name || 'Unknown Doctor'}
+                    {visit.chemist?.firmName || 'Unknown Chemist'}
                   </h4>
                   <p className="text-sm text-gray-600">
-                    <span className="font-medium">Specialization:</span>{' '}
-                    {visit.doctor?.specialization || 'N/A'}
+                    <span className="font-medium">Mobile:</span> {visit.chemist?.mobileNo || 'N/A'}
                   </p>
                   <p className="text-sm text-gray-600">
-                    <span className="font-medium">Date:</span>{' '}
-                    {new Date(visit.date).toLocaleDateString()}
+                    <span className="font-medium">Date:</span> {new Date(visit.date).toLocaleDateString()}
                   </p>
                   <p className="text-sm text-gray-600 mt-1">
                     <span className="font-medium">Notes:</span> {visit.notes}
@@ -316,7 +312,6 @@ const DoctorVisiting = () => {
           )}
         </div>
 
-        {/* Confirmed Visits */}
         <div>
           <h3 className="text-2xl font-semibold text-gray-800 mb-6">Confirmed Visits</h3>
           {confirmedVisits.length === 0 ? (
@@ -338,22 +333,19 @@ const DoctorVisiting = () => {
                   className="bg-white rounded-xl shadow-md p-5 border border-green-100 hover:shadow-lg transition-all duration-300"
                 >
                   <h4 className="text-lg font-semibold text-gray-900 mb-3">
-                    {visit.doctor?.name || 'Unknown Doctor'}
+                    {visit.chemist?.firmName || 'Unknown Chemist'}
                   </h4>
                   <p className="text-sm text-gray-600">
-                    <span className="font-medium">Specialization:</span>{' '}
-                    {visit.doctor?.specialization || 'N/A'}
+                    <span className="font-medium">Mobile:</span> {visit.chemist?.mobileNo || 'N/A'}
                   </p>
                   <p className="text-sm text-gray-600">
-                    <span className="font-medium">Date:</span>{' '}
-                    {new Date(visit.date).toLocaleDateString()}
+                    <span className="font-medium">Date:</span> {new Date(visit.date).toLocaleDateString()}
                   </p>
                   <p className="text-sm text-gray-600 mt-1">
                     <span className="font-medium">Notes:</span> {visit.notes}
                   </p>
                   <p className="text-sm text-gray-600 mt-1">
-                    <span className="font-medium">Confirmed at:</span>{' '}
-                    {visit.latitude}, {visit.longitude}
+                    <span className="font-medium">Confirmed at:</span> {visit.latitude}, {visit.longitude}
                   </p>
                   <div className="mt-4 flex items-center text-green-600 font-medium">
                     <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
@@ -369,4 +361,4 @@ const DoctorVisiting = () => {
   );
 };
 
-export default DoctorVisiting;
+export default ChemistVisiting;

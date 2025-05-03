@@ -1,195 +1,161 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-
-// 1) Import the API functions
-import { fetchUserById, updateUser, deleteUser } from '../../api/userApi';
+import { fetchUserById, updateUser } from '../../api/userApi';
+import { fetchHeadOffices } from '../../api/headofficeApi';
 
 const SingleUser = () => {
-  const { id } = useParams(); // read :id from the route
+  const { id } = useParams();
   const navigate = useNavigate();
-
-  const [user, setUser] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
-
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    role: '',
-    phone: '',
-  });
 
-  // 2) Fetch user on mount (or when ID changes)
+    role: 'User',
+    phone: '',
+    headOffice: '',
+  });
+  const [headOffices, setHeadOffices] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    fetchUserById(id)
-      .then((data) => {
-        setUser(data);
+    const loadData = async () => {
+      try {
+        // Fetch user details
+        const user = await fetchUserById(id);
         setFormData({
-          name: data.name,
-          email: data.email,
-          role: data.role,
-          phone: data.phone || '',
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          phone: user.phone,
+          headOffice: user.headOffice || '',
+        
         });
-      })
-      .catch((err) => console.error(err));
+
+        // Fetch head offices for dropdown
+        const offices = await fetchHeadOffices();
+        setHeadOffices(offices);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
   }, [id]);
 
-  // 3) Update form state on input change
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  // 4) Handle updating the user
-  const handleUpdate = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const updatedUser = await updateUser(id, formData);
-      setUser(updatedUser);
-      setIsEditing(false);
+      await updateUser(id, formData);
       alert('User updated successfully!');
-    } catch (error) {
-      console.error(error);
-      alert(error.message || 'Error updating user');
+      navigate('/admin-dashboard/all-user');
+    } catch (err) {
+      console.error(err);
+      alert(err.message || 'Server error. Please try again.');
     }
   };
 
-  // 5) Handle deleting the user
-  const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      try {
-        await deleteUser(id);
-        alert('User deleted successfully');
-        // After deletion, navigate back to all users
-        navigate('/admin-dashboard/all-user');
-      } catch (error) {
-        console.error(error);
-        alert(error.message || 'Error deleting user');
-      }
-    }
-  };
-
-  if (!user) {
+  if (loading) {
     return (
-      <div className="p-6 flex items-center justify-center min-h-screen">
-        <p className="text-lg text-gray-600">Loading user data...</p>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 min-h-screen flex flex-col items-start justify-start">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 border border-gray-200">
-        <div className="flex items-center space-x-4 mb-6">
-          {/* User Avatar Placeholder */}
-          <div className="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-2xl">
-            {user.name.charAt(0).toUpperCase()}
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800">{user.name}</h1>
-            <p className="text-sm text-gray-500">{user.role}</p>
-          </div>
+    <div className="max-w-xl mx-auto p-6 bg-white rounded-lg shadow-md border border-gray-200">
+      <h1 className="text-2xl font-bold mb-4">Edit User</h1>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Name */}
+        <div>
+          <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
+          <input
+            id="name"
+            name="name"
+            type="text"
+            value={formData.name}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded-md px-4 py-2"
+          />
         </div>
-
-        {isEditing ? (
-          <form onSubmit={handleUpdate} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Name</label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Email</label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Role</label>
-              <input
-                type="text"
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Phone</label>
-              <input
-                type="text"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-            </div>
-            <div className="flex space-x-4">
-              <button
-                type="submit"
-                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors"
-              >
-                Save
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsEditing(false)}
-                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        ) : (
-          <div className="space-y-4">
-            <p>
-              <strong>Email:</strong> {user.email}
-            </p>
-            {user.phone && (
-              <p>
-                <strong>Phone:</strong> {user.phone}
-              </p>
-            )}
-            <p>
-              <strong>Role:</strong> {user.role}
-            </p>
-            {/* Add more fields as needed */}
-          </div>
-        )}
-
-        <div className="mt-6 flex space-x-4">
-          {!isEditing && (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
-            >
-              Edit
-            </button>
-          )}
-          <button
-            onClick={handleDelete}
-            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors"
-          >
-            Delete
-          </button>
-          <button
-            onClick={() => navigate('/admin-dashboard/all-user')}
-            className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors"
-          >
-            Back to Users
-          </button>
+        {/* Email */}
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            value={formData.email}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded-md px-4 py-2"
+          />
         </div>
-      </div>
+        {/* Role */}
+        <div>
+          <label htmlFor="role" className="block text-sm font-medium text-gray-700">Role</label>
+          <select
+            id="role"
+            name="role"
+            value={formData.role}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded-md px-4 py-2"
+          >
+            <option value="Admin">Admin</option>
+            <option value="User">User</option>
+          </select>
+        </div>
+        {/* Phone */}
+        <div>
+          <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone</label>
+          <input
+            id="phone"
+            name="phone"
+            type="text"
+            value={formData.phone}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded-md px-4 py-2"
+          />
+        </div>
+        {/* Head Office */}
+        <div>
+          <label htmlFor="headOffice" className="block text-sm font-medium text-gray-700">Head Office</label>
+          <select
+            id="headOffice"
+            name="headOffice"
+            value={formData.headOffice}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded-md px-4 py-2"
+          >
+            <option value="">Select Head Office</option>
+            {headOffices.map((office) => (
+              <option key={office._id} value={office._id}>
+                {office.name}
+              </option>
+            ))}
+          </select>
+        </div>
+    
+ 
+        <button
+          type="submit"
+          className="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-all font-medium"
+        >
+          Update User
+        </button>
+      </form>
     </div>
   );
 };
+
+
 
 export default SingleUser;

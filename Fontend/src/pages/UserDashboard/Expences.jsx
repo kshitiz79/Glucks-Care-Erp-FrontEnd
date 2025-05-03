@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { AuthContext } from './../../context/AuthContext';
+import BASE_URL from '../../BaseUrl/baseUrl';
 
 const Expenses = () => {
   const { user } = useContext(AuthContext);
@@ -17,12 +18,13 @@ const Expenses = () => {
 
   useEffect(() => {
     if (user && user.id) {
-      fetch(`https://medi-glucks-erp.onrender.com/api/expenses?userId=${user.id}`)
+      fetch(`${BASE_URL}/api/expenses?userId=${user.id}`)
         .then(response => response.json())
         .then(data => setExpenses(data))
         .catch(error => console.error('Error fetching expenses:', error));
     }
   }, [user]);
+  
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];

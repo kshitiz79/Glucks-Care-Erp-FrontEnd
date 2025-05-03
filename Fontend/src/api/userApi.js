@@ -1,28 +1,29 @@
 // src/api/userApi.js
 
-const USER_API_BASE = 'http://localhost:5050/api/users';
+import BASE_URL from "../BaseUrl/baseUrl";
+
 
 // Fetch all users
 export async function fetchAllUsers() {
-  const response = await fetch(USER_API_BASE);
+  const response = await fetch(`${BASE_URL}/api/users`);
   if (!response.ok) {
     throw new Error('Failed to fetch users');
   }
   return await response.json();
 }
 
-// Fetch single user by ID
+
 export async function fetchUserById(userId) {
-  const response = await fetch(`${USER_API_BASE}/${userId}`);
+  const response = await fetch(`${BASE_URL}/api/users/${userId}`);
   if (!response.ok) {
     throw new Error('Failed to fetch user');
   }
   return await response.json();
 }
 
-// Update user by ID
+
 export async function updateUser(userId, payload) {
-  const response = await fetch(`${USER_API_BASE}/${userId}`, {
+  const response = await fetch(`${BASE_URL}/api/users/${userId}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -35,7 +36,7 @@ export async function updateUser(userId, payload) {
 
 // Delete user by ID
 export async function deleteUser(userId) {
-  const response = await fetch(`${USER_API_BASE}/${userId}`, {
+  const response = await fetch(`${BASE_URL}/api/users/${userId}`, {
     method: 'DELETE',
   });
   if (!response.ok) {

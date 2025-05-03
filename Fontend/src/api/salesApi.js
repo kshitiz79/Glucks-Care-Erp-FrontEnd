@@ -1,7 +1,11 @@
-// salesApi.js
-const API_BASE = 'http://localhost:5050/api/sales';
+import BASE_URL from "../BaseUrl/baseUrl";
 
-// Get all sales
+
+
+
+const API_BASE = `${BASE_URL}/api/sales`;
+
+
 export async function fetchAllSales() {
   const response = await fetch(API_BASE);
   if (!response.ok) {
@@ -10,7 +14,6 @@ export async function fetchAllSales() {
   return await response.json();
 }
 
-// Get sales by user
 export async function fetchSalesByUser(userId) {
   const response = await fetch(`${API_BASE}/user/${userId}`);
   if (!response.ok) {
@@ -19,7 +22,7 @@ export async function fetchSalesByUser(userId) {
   return await response.json();
 }
 
-// Create a new sales record
+
 export async function createSale(payload) {
   const response = await fetch(API_BASE, {
     method: 'POST',

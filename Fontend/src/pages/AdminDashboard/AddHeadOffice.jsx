@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { fetchDoctors } from './../../api/doctorApi';
 import { fetchHeadOffices, createHeadOffice } from './../../api/headofficeApi';
+import BASE_URL from '../../BaseUrl/baseUrl';
 const AddHeadOffice = () => {
   const [areaName, setAreaName] = useState('');
   const [showForm, setShowForm] = useState(false);
@@ -19,17 +20,22 @@ const AddHeadOffice = () => {
 
   // Fetch users from the backend
   useEffect(() => {
-    fetch('http://localhost:5050/api/users')
+    fetch(`${BASE_URL}/api/users`)
       .then((res) => res.json())
       .then((data) => setUsers(data))
       .catch((err) => console.error(err));
   }, []);
-
   // Fetch doctors from the backend
   useEffect(() => {
     fetchDoctors()
-      .then((data) => setDoctorList(data))
-      .catch((err) => console.error(err));
+      .then((response) => {
+        const data = Array.isArray(response) ? response : response.Data || [];
+        setDoctorList(data);
+      })
+      .catch((err) => {
+        console.error(err);
+        setDoctorList([]);
+      });
   }, []);
 
   const handleChange = (e) => {

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import BASE_URL from '../../BaseUrl/baseUrl';
 
 const AdminOrders = () => {
   const [groupedOrders, setGroupedOrders] = useState([]);
@@ -11,7 +12,7 @@ const AdminOrders = () => {
     const fetchOrders = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch('http://localhost:5050/api/orders');
+        const response = await fetch(`${BASE_URL}/api/orders`);
         const data = await response.json();
         if (Array.isArray(data)) {
           const groups = data.reduce((acc, order) => {

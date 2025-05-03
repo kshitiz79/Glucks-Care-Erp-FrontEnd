@@ -1,27 +1,25 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import productData from './../../data/data.json';
+import BASE_URL from '../../BaseUrl/baseUrl';
 
 const SingleProduct = () => {
-  const { id } = useParams();
-  const productId = parseInt(id, 10);
-  const product = productData.find((p) => p.id === productId);
+  const { productId } = useParams();
+  const [product, setProduct] = useState(null);
 
-  if (!product) {
-    return (
-      <div className="p-6">
-        <h2 className="text-xl font-bold">Product not found</h2>
-      </div>
-    );
-  }
+  useEffect(() => {
+    fetch(`${BASE_URL}/api/products/${productId}`)
+      .then((res) => res.json())
+      .then((data) => setProduct(data))
+      .catch((err) => console.error(err));
+  }, [productId]);
 
   return (
     <div className="p-6">
-      <div className=" mx-auto bg-white shadow-md rounded-lg p-6">
+      <div className="mx-auto bg-white shadow-md rounded-lg p-6 max-w-xl">
         <img
-          src={product.image}
+          src={product.image} // Use the full Cloudinary URL directly
           alt={product.name}
-          className="w-full h-60 object-cover rounded mb-4"
+          className="w-full h-96 object-cover rounded mb-4"
         />
         <h1 className="text-2xl font-bold mb-2">{product.name}</h1>
         <p className="text-gray-700 mb-2">

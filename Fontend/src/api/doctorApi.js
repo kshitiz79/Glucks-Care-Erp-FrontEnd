@@ -1,9 +1,9 @@
+import BASE_URL from "../BaseUrl/baseUrl";
 
-const BASE_URL = 'http://localhost:5050/api/doctors';
 
 
 export const fetchDoctors = async () => {
-  const res = await fetch(BASE_URL);
+  const res = await fetch(`${BASE_URL}/api/doctors`);
   if (!res.ok) {
     const errorData = await res.json();
     throw new Error(errorData.msg || 'Failed to fetch doctors');
@@ -16,7 +16,7 @@ export const fetchDoctors = async () => {
  * @param {Object} doctorData 
  */
 export const createDoctor = async (doctorData) => {
-  const res = await fetch(BASE_URL, {
+  const res = await fetch(`${BASE_URL}/api/doctors`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(doctorData),
@@ -34,7 +34,7 @@ export const createDoctor = async (doctorData) => {
  * @param {Object} updatedData 
  */
 export const updateDoctor = async (id, updatedData) => {
-  const res = await fetch(`${BASE_URL}/${id}`, {
+  const res = await fetch(`${BASE_URL}/api/doctors/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(updatedData),
@@ -51,7 +51,7 @@ export const updateDoctor = async (id, updatedData) => {
  * @param {string} id 
  */
 export const deleteDoctor = async (id) => {
-  const res = await fetch(`${BASE_URL}/${id}`, {
+  const res = await fetch(`${BASE_URL}/api/doctors/${id}`, {
     method: 'DELETE',
   });
   if (!res.ok) {

@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import BASE_URL from '../../BaseUrl/baseUrl';
 
 const ExpencesAdmin = () => {
   const [groupedExpenses, setGroupedExpenses] = useState([]);
 
   useEffect(() => {
-    fetch('http://localhost:5050/api/expenses')
+    fetch(`${BASE_URL}/api/expenses`)
       .then(response => response.json())
       .then(data => {
         if (Array.isArray(data)) {

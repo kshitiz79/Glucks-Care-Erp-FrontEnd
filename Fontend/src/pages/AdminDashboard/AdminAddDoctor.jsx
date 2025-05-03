@@ -1,5 +1,6 @@
 // src/pages/AdminAddDoctor.jsx
 import React, { useState, useEffect } from 'react';
+import BASE_URL from '../../BaseUrl/baseUrl';
 
 const AdminAddDoctor = () => {
   const [doctors, setDoctors] = useState([]);
@@ -23,18 +24,17 @@ const AdminAddDoctor = () => {
 
   // Fetch doctors from the backend on mount
   useEffect(() => {
-    fetch('http://localhost:5050/api/doctors')
+    fetch(`${BASE_URL}/api/doctors`)
       .then(res => res.json())
       .then(data => setDoctors(data))
-      .catch(err => console.error(err));
+      .catch(err => console.error('Error fetching doctors:', err));
   }, []);
-
-  // Fetch head offices from the backend on mount
+  
   useEffect(() => {
-    fetch('http://localhost:5050/api/headoffices')
+    fetch(`${BASE_URL}/api/headoffices`)
       .then(res => res.json())
       .then(data => setHeadOffices(data))
-      .catch(err => console.error(err));
+      .catch(err => console.error('Error fetching head offices:', err));
   }, []);
 
   // Fetch sales reps (users) from the backend on mount

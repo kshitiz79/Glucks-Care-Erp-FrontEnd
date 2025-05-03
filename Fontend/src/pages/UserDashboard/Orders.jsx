@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { AuthContext } from './../../context/AuthContext';
+import BASE_URL from '../../BaseUrl/baseUrl';
 
 const Orders = () => {
   const { user } = useContext(AuthContext);
@@ -40,7 +41,7 @@ const Orders = () => {
     };
 
     try {
-      const response = await fetch('http://localhost:5050/api/orders', {
+      const response = await fetch(`${BASE_URL}/api/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newOrder),
@@ -61,7 +62,7 @@ const Orders = () => {
       if (user && user.id) {
         setIsLoading(true);
         try {
-          const response = await fetch(`https://medi-glucks-erp.onrender.com/api/orders?userId=${user.id}`);
+          const response = await fetch(`${BASE_URL}/api/orders?userId=${user.id}`);
           if (!response.ok) throw new Error('Failed to fetch orders');
           const data = await response.json();
           if (Array.isArray(data)) {
@@ -81,6 +82,11 @@ const Orders = () => {
     };
     fetchOrders();
   }, [user]);
+
+
+
+
+
 
   if (isLoading) {
     return (

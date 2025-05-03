@@ -1,11 +1,13 @@
 // src/api/headofficeApi.js
-const BASE_URL = 'http://localhost:5050/api/headoffices';
+
+import BASE_URL from "../BaseUrl/baseUrl";
+
 
 /**
  * Fetch all head offices.
  */
 export const fetchHeadOffices = async () => {
-  const res = await fetch(BASE_URL);
+  const res = await fetch(`${BASE_URL}/api/headoffices`);
   if (!res.ok) {
     const errorData = await res.json();
     throw new Error(errorData.msg || 'Failed to fetch head offices');
@@ -18,7 +20,7 @@ export const fetchHeadOffices = async () => {
  * @param {Object} data - The head office data (e.g., { name: 'Office Name' }).
  */
 export const createHeadOffice = async (data) => {
-  const res = await fetch(BASE_URL, {
+  const res = await fetch(`${BASE_URL}/api/headoffices`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -36,7 +38,7 @@ export const createHeadOffice = async (data) => {
  * @param {Object} updatedData - The data to update.
  */
 export const updateHeadOffice = async (id, updatedData) => {
-  const res = await fetch(`${BASE_URL}/${id}`, {
+  const res = await fetch(`${BASE_URL}/api/headoffices/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(updatedData),
@@ -53,7 +55,7 @@ export const updateHeadOffice = async (id, updatedData) => {
  * @param {string} id - The head office ID.
  */
 export const deleteHeadOffice = async (id) => {
-  const res = await fetch(`${BASE_URL}/${id}`, {
+  const res = await fetch(`${BASE_URL}/api/headoffices/${id}`, {
     method: 'DELETE',
   });
   if (!res.ok) {

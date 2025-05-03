@@ -34,6 +34,20 @@ import AdminOrders from './pages/AdminDashboard/AdminOrders';
 import Broucher from './pages/UserDashboard/Broucher';
 import DailyPost from './pages/UserDashboard/DailyPost';
 import PromotionImg from './pages/UserDashboard/PromotionImg';
+import AddProduct from './pages/AdminDashboard/Addproduct';
+import SingleProduct from './pages/UserDashboard/SingleProduct';
+import AddChemis from './pages/UserDashboard/AddChemis';
+import ChemistVisiting from './pages/UserDashboard/ChemistVisiting';
+import AddStockist from './pages/UserDashboard/AddStockist';
+import StockistVisite from './pages/UserDashboard/StockistVisite';
+import RaiseTicket from './pages/UserDashboard/RaiseTicket';
+import GetRaisedTicket from './pages/AdminDashboard/GetRaisedTicket';
+import ChemistVistingAdmin from './pages/AdminDashboard/ChemistVistingAdmin';
+import StockistVisitingAdmin from './pages/AdminDashboard/StockistVisitingAdmin';
+import SendNotification from './pages/AdminDashboard/SendNotification';
+import GetNotification from './pages/UserDashboard/GetNotification';
+
+
 
 // Protected Route Component
 const ProtectedRoute = ({ role }) => {
@@ -70,12 +84,23 @@ function App() {
             <Route path="all-pdf" element={<AllPdf />} />
             <Route path="head-office" element={<AddHeadOffice />} />
             <Route path="sales" element={<AdminSalesActivity />} />
+
+
+            <Route path="chemist-visiting" element={<ChemistVistingAdmin />} />
+            <Route path="stockist-visiting" element={<StockistVisitingAdmin />} />
+
+
             <Route path="doctor-visiting" element={<DoctorVisiteAdmin />} />
             <Route path="admin/visits/:userId" element={<DoctorVisiteAdminById />} />
             <Route path="admin-expenses" element={<ExpencesAdmin />} />
             <Route path="admin-expences/:expenseId" element={<ExpencesAdminById />} />
             <Route path="orders" element={<AdminOrders />} />
             <Route path="orders/:userId" element={<AdminOrdersByUser />} />
+            <Route path="add-products" element={<AddProduct />} />
+            <Route path="raise-tickets" element={<GetRaisedTicket />} />
+
+            <Route path="send-notification" element={<SendNotification />} />
+   
           </Route>
         </Route>
 
@@ -88,12 +113,24 @@ function App() {
             <Route path="sales-activity" element={<SalesActivity />} />
             <Route path="doctor-visiting" element={<DoctorVisiting />} />
             <Route path="add-products" element={<ProductList />} />
+            <Route path="product/:productId" element={<SingleProduct />} />
+
             <Route path="order" element={<Orders />} />
             <Route path="expences" element={<Expences />} />
             <Route path="reports" element={<Report />} />
             <Route path="brochers-img" element={<Broucher />} />
             <Route path="daily-img" element={<DailyPost />} />
             <Route path="promotional-img" element={<PromotionImg />} />
+
+
+            <Route path="add-chemist" element={<AddChemis />} />
+            <Route path="chemist-visit" element={<ChemistVisiting />} />
+            <Route path="add-stockist" element={<AddStockist />} />
+
+            <Route path="stockist-visit" element={<StockistVisite />} />
+            <Route path="rase-ticket" element={<RaiseTicket />} />
+
+            <Route path="get-notification" element={<GetNotification />} />
           </Route>
         </Route>
       </Routes>

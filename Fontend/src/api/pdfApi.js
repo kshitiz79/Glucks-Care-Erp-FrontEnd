@@ -1,4 +1,11 @@
-const API_URL = 'http://localhost:5050/api/pdfs';
+import BASE_URL from "../BaseUrl/baseUrl";
+
+
+
+const API_URL = `${BASE_URL}/api/pdfs`;
+
+
+
 
 export const createPdf = async (formData) => {
   const res = await fetch(API_URL, {
@@ -14,6 +21,10 @@ export const createPdf = async (formData) => {
   return await res.json();
 };
 
+
+
+
+
 export const getPdfs = async () => {
   const res = await fetch(API_URL);
   if (!res.ok) {
@@ -21,6 +32,12 @@ export const getPdfs = async () => {
   }
   return await res.json();
 };
+
+
+
+
+
+
 
 export const getSignedPdfUrl = async (fileKey) => {
   const res = await fetch(`${API_URL}/signed-url/${fileKey}`);
@@ -30,6 +47,12 @@ export const getSignedPdfUrl = async (fileKey) => {
   const data = await res.json();
   return data.fileUrl;
 };
+
+
+
+
+
+
 
 export const deletePdf = async (id) => {
   const res = await fetch(`${API_URL}/${id}`, {
@@ -41,6 +64,12 @@ export const deletePdf = async (id) => {
   }
   return await res.json();
 };
+
+
+
+
+
+
 
 export const updatePdf = async (id, data) => {
   const res = await fetch(`${API_URL}/${id}`, {

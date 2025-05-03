@@ -1,10 +1,12 @@
 // authApi.js
 
-const API_URL = 'http://localhost:5050/api/auth';
+import BASE_URL from "../BaseUrl/baseUrl";
+
+
 
 // Login user
 export async function loginUser(email, password) {
-  const response = await fetch(`${API_URL}/login`, {
+  const response = await fetch(`${BASE_URL}/api/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
@@ -19,7 +21,7 @@ export async function loginUser(email, password) {
   return await response.json();
 }
 export async function registerUser(payload) {
-  const response = await fetch(`${API_URL}/register`, {
+  const response = await fetch(`${BASE_URL}/api/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),

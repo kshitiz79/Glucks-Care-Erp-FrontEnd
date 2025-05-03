@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import BASE_URL from '../../BaseUrl/baseUrl';
 
 const AdminOrdersByUser = () => {
   const { userId } = useParams();
@@ -13,7 +14,7 @@ const AdminOrdersByUser = () => {
     const fetchOrders = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(`http://localhost:5050/api/orders?userId=${userId}`);
+        const response = await fetch(`${BASE_URL}/api/orders?userId=${userId}`);
         if (!response.ok) throw new Error('Failed to fetch orders');
         const data = await response.json();
         setOrders(data);

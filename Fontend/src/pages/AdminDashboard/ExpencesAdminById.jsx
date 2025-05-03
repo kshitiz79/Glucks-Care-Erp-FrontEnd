@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import BASE_URL from '../../BaseUrl/baseUrl';
 
 const ExpencesAdminById = () => {
   const { expenseId: userId } = useParams();
@@ -9,7 +10,7 @@ const ExpencesAdminById = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch(`https://medi-glucks-erp.onrender.com/api/expenses?userId=${userId}`)
+    fetch(`${BASE_URL}/api/expenses?userId=${userId}`)
       .then(response => {
         if (!response.ok) {
           throw new Error(`Expenses not found (status: ${response.status})`);
@@ -23,7 +24,7 @@ const ExpencesAdminById = () => {
   const handleApprove = async (id) => {
     setLoadingAction(prev => ({ ...prev, [id]: 'approve' }));
     try {
-      const response = await fetch(`http://localhost:5050/api/expenses/${id}/approve`, {
+      const response = await fetch(`${BASE_URL}/api/expenses/${id}/approve`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({})
@@ -43,7 +44,7 @@ const ExpencesAdminById = () => {
   const handleReject = async (id) => {
     setLoadingAction(prev => ({ ...prev, [id]: 'reject' }));
     try {
-      const response = await fetch(`http://localhost:5050/api/expenses/${id}/reject`, {
+      const response = await fetch(`${BASE_URL}/api/expenses/${id}/reject`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({})

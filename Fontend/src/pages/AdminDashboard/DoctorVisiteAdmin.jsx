@@ -32,21 +32,7 @@ const DoctorVisiteAdmin = () => {
     setVisitsByUser(groups);
   };
 
-  const handleConfirmVisit = (visitId) => {
-    fetch(`http://localhost:5050/api/doctor-visits/${visitId}/confirm`, {
-      method: 'PUT',
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        return fetch('http://localhost:5050/api/doctor-visits');
-      })
-      .then((res) => res.json())
-      .then((data) => {
-        setVisits(data);
-        groupVisitsByUser(data);
-      })
-      .catch((err) => setError(err.message));
-  };
+ 
 
   const handleUserCardClick = (userId) => {
     navigate(`/admin-dashboard/admin/visits/${userId}`);
