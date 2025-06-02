@@ -34,7 +34,8 @@ import AdminOrders from './pages/AdminDashboard/AdminOrders';
 import Broucher from './pages/UserDashboard/Broucher';
 import DailyPost from './pages/UserDashboard/DailyPost';
 import PromotionImg from './pages/UserDashboard/PromotionImg';
-import AddProduct from './pages/AdminDashboard/Addproduct';
+import AddProduct from './pages/AdminDashboard/AddProduct';
+
 import SingleProduct from './pages/UserDashboard/SingleProduct';
 import AddChemis from './pages/UserDashboard/AddChemis';
 import ChemistVisiting from './pages/UserDashboard/ChemistVisiting';
