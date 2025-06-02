@@ -66,7 +66,7 @@ const ProtectedRoute = ({ role }) => {
 
 function App() {
   return (
-    <Router basename="/mr">
+    <Router basename="/mr-login">
       <Routes>
         {/* LOGIN ROUTE */}
         <Route path="/" element={<Login />} />
