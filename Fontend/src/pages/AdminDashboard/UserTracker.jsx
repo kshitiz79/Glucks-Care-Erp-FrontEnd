@@ -96,7 +96,7 @@ export default function UserTracker() {
           className="lg:w-2/3"
         >
           <div className="bg-white rounded-2xl shadow-lg p-4">
-          <LoadScript googleMapsApiKey="AIzaSyCLRC2KUtUshQ7B1YX_gFaKYadrpThcM3g">
+          <LoadScript googleMapsApiKey="AIzaSyBbiU_NzDhQsrPJiH8dzchmVdkXnS2f_Pg">
               <GoogleMap
                 mapContainerStyle={containerStyle}
                 center={mapCenter}
