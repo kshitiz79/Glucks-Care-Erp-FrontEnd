@@ -1,13 +1,14 @@
-// src/components/AddDoctor.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { fetchDoctors, createDoctor, deleteDoctor } from '../../api/doctorApi';
 import { fetchHeadOffices } from '../../api/headofficeApi';
 import { LoadScript, GoogleMap, Marker, Autocomplete } from '@react-google-maps/api';
 import { motion } from 'framer-motion';
+import { AuthContext } from '../../context/AuthContext';
 
 const libraries = ['places'];
 
 const AddDoctor = () => {
+  const { user } = useContext(AuthContext); // Access user data from AuthContext
   const [doctors, setDoctors] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [headOffices, setHeadOffices] = useState([]);
@@ -24,7 +25,6 @@ const AddDoctor = () => {
     date_of_birth: '',
     gender: '',
     anniversary: '',
-    head_office: '',
   });
   const [mapCenter, setMapCenter] = useState({ lat: 28.6139, lng: 77.2090 });
   const [markerPosition, setMarkerPosition] = useState(null);
@@ -32,21 +32,21 @@ const AddDoctor = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [showErrorModal, setShowErrorModal] = useState(false);
 
+  // Fetch doctors on mount
   useEffect(() => {
     fetchDoctors()
       .then(data => setDoctors(data))
       .catch(err => {
-        console.error(err);
         setErrorMessage(err.message || 'Failed to fetch doctors');
         setShowErrorModal(true);
       });
   }, []);
 
+  // Fetch head offices on mount
   useEffect(() => {
     fetchHeadOffices()
       .then(data => setHeadOffices(data))
       .catch(err => {
-        console.error(err);
         setErrorMessage(err.message || 'Failed to fetch head offices');
         setShowErrorModal(true);
       });
@@ -104,7 +104,6 @@ const AddDoctor = () => {
       setErrorMessage('Doctor deleted successfully!');
       setShowErrorModal(true);
     } catch (error) {
-      console.error(error);
       setErrorMessage(error.message || 'Failed to delete doctor');
       setShowErrorModal(true);
     }
@@ -114,35 +113,34 @@ const AddDoctor = () => {
     e.preventDefault();
 
     // Validate required fields
-    if (!formData.name || !formData.specialization || !formData.email || !formData.phone ||
-        !formData.registration_number || !formData.years_of_experience || !formData.date_of_birth ||
-        !formData.gender || !formData.head_office) {
-      setErrorMessage('Please fill all required fields.');
+    if (!formData.name) {
+      setErrorMessage('Doctor name is required.');
       setShowErrorModal(true);
       return;
     }
 
-    // Validate head_office is a valid ObjectId
-    if (!/^[0-9a-fA-F]{24}$/.test(formData.head_office)) {
-      setErrorMessage('Please select a valid Head Office.');
+    // Ensure user has a headOffice
+    if (!user?.headOffice) {
+      setErrorMessage('No head office assigned to your account. Please contact an administrator.');
       setShowErrorModal(true);
       return;
     }
 
+    // Prepare data for submission
     const newDoctorData = {
       name: formData.name,
-      specialization: formData.specialization,
-      location: formData.location,
-      latitude: formData.latitude ? parseFloat(formData.latitude) : undefined,
-      longitude: formData.longitude ? parseFloat(formData.longitude) : undefined,
-      email: formData.email,
-      phone: formData.phone,
-      registration_number: formData.registration_number,
-      years_of_experience: parseInt(formData.years_of_experience, 10),
-      date_of_birth: formData.date_of_birth,
-      gender: formData.gender,
-      anniversary: formData.anniversary || undefined,
-      head_office: formData.head_office,
+      headOffice: user.headOffice, // Use headOffice from user context
+      ...(formData.specialization && { specialization: formData.specialization }),
+      ...(formData.location && { location: formData.location }),
+      ...(formData.latitude && { latitude: parseFloat(formData.latitude) }),
+      ...(formData.longitude && { longitude: parseFloat(formData.longitude) }),
+      ...(formData.email && { email: formData.email }),
+      ...(formData.phone && { phone: formData.phone }),
+      ...(formData.registration_number && { registration_number: formData.registration_number }),
+      ...(formData.years_of_experience && { years_of_experience: parseInt(formData.years_of_experience, 10) }),
+      ...(formData.date_of_birth && { date_of_birth: formData.date_of_birth }),
+      ...(formData.gender && { gender: formData.gender }),
+      ...(formData.anniversary && { anniversary: formData.anniversary }),
     };
 
     try {
@@ -163,12 +161,10 @@ const AddDoctor = () => {
         date_of_birth: '',
         gender: '',
         anniversary: '',
-        head_office: '',
       });
       setMarkerPosition(null);
       setShowForm(false);
     } catch (error) {
-      console.error('Error:', error);
       setErrorMessage(error.message || 'Failed to create doctor');
       setShowErrorModal(true);
     }
@@ -177,10 +173,7 @@ const AddDoctor = () => {
   const mapContainerStyle = { width: '100%', height: '400px' };
 
   // Check if form is valid for submit button
-  const isFormValid = formData.name && formData.specialization && formData.email &&
-                     formData.phone && formData.registration_number && formData.years_of_experience &&
-                     formData.date_of_birth && formData.gender && formData.head_office &&
-                     /^[0-9a-fA-F]{24}$/.test(formData.head_office);
+  const isFormValid = formData.name && user?.headOffice;
 
   return (
     <div className="p-8 min-h-screen">
@@ -230,8 +223,8 @@ const AddDoctor = () => {
             className="bg-white rounded-2xl shadow-xl p-8 mb-8 transform transition-all duration-500 ease-in-out"
           >
             <h3 className="text-2xl font-bold text-gray-800 mb-6">Add New Doctor</h3>
-            {headOffices.length === 0 && (
-              <p className="text-red-500 mb-4">No head offices available. Please add a head office first.</p>
+            {user && !user.headOffice && (
+              <p className="text-red-500 mb-4">No head office assigned to your account. Please contact an administrator.</p>
             )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Name */}
@@ -252,7 +245,7 @@ const AddDoctor = () => {
               {/* Specialization */}
               <div>
                 <label htmlFor="specialization" className="block text-sm font-semibold text-gray-700">
-                  Specialization <span className="text-red-500">*</span>
+                  Specialization
                 </label>
                 <input
                   type="text"
@@ -260,7 +253,6 @@ const AddDoctor = () => {
                   name="specialization"
                   value={formData.specialization}
                   onChange={handleChange}
-                  required
                   className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
@@ -328,7 +320,7 @@ const AddDoctor = () => {
               {/* Email */}
               <div>
                 <label htmlFor="email" className="block text-sm font-semibold text-gray-700">
-                  Email <span className="text-red-500">*</span>
+                  Email
                 </label>
                 <input
                   type="email"
@@ -336,14 +328,13 @@ const AddDoctor = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  required
                   className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
               {/* Phone */}
               <div>
                 <label htmlFor="phone" className="block text-sm font-semibold text-gray-700">
-                  Phone <span className="text-red-500">*</span>
+                  Phone
                 </label>
                 <input
                   type="text"
@@ -351,14 +342,13 @@ const AddDoctor = () => {
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
-                  required
                   className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
               {/* Registration Number */}
               <div>
                 <label htmlFor="registration_number" className="block text-sm font-semibold text-gray-700">
-                  Registration Number <span className="text-red-500">*</span>
+                  Registration Number
                 </label>
                 <input
                   type="text"
@@ -366,14 +356,13 @@ const AddDoctor = () => {
                   name="registration_number"
                   value={formData.registration_number}
                   onChange={handleChange}
-                  required
                   className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
               {/* Years of Experience */}
               <div>
                 <label htmlFor="years_of_experience" className="block text-sm font-semibold text-gray-700">
-                  Years of Experience <span className="text-red-500">*</span>
+                  Years of Experience
                 </label>
                 <input
                   type="number"
@@ -381,14 +370,13 @@ const AddDoctor = () => {
                   name="years_of_experience"
                   value={formData.years_of_experience}
                   onChange={handleChange}
-                  required
                   className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
               {/* Date of Birth */}
               <div>
                 <label htmlFor="date_of_birth" className="block text-sm font-semibold text-gray-700">
-                  Date of Birth <span className="text-red-500">*</span>
+                  Date of Birth
                 </label>
                 <input
                   type="date"
@@ -396,21 +384,19 @@ const AddDoctor = () => {
                   name="date_of_birth"
                   value={formData.date_of_birth}
                   onChange={handleChange}
-                  required
                   className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
               {/* Gender */}
               <div>
                 <label htmlFor="gender" className="block text-sm font-semibold text-gray-700">
-                  Gender <span className="text-red-500">*</span>
+                  Gender
                 </label>
                 <select
                   id="gender"
                   name="gender"
                   value={formData.gender}
                   onChange={handleChange}
-                  required
                   className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
                   <option value="">Select Gender</option>
@@ -432,27 +418,6 @@ const AddDoctor = () => {
                   onChange={handleChange}
                   className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
-              </div>
-              {/* Head Office Dropdown */}
-              <div>
-                <label htmlFor="head_office" className="block text-sm font-semibold text-gray-700">
-                  Head Office <span className="text-red-500">*</span>
-                </label>
-                <select
-                  id="head_office"
-                  name="head_office"
-                  value={formData.head_office}
-                  onChange={handleChange}
-                  required
-                  className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  <option value="">Select Head Office</option>
-                  {headOffices.map((office) => (
-                    <option key={office._id} value={office._id}>
-                      {office.name}
-                    </option>
-                  ))}
-                </select>
               </div>
             </div>
             <div className="flex justify-end mt-8">
@@ -481,16 +446,16 @@ const AddDoctor = () => {
           >
             <h3 className="text-xl font-semibold text-gray-800 mb-3 truncate">{doctor.name}</h3>
             <p className="text-gray-600 mb-2">
-              <strong className="text-indigo-700">Specialization:</strong> {doctor.specialization}
+              <strong className="text-indigo-700">Specialization:</strong> {doctor.specialization || 'N/A'}
             </p>
             <p className="text-gray-600 mb-2">
-              <strong className="text-indigo-700">Experience:</strong> {doctor.years_of_experience} years
+              <strong className="text-indigo-700">Experience:</strong> {doctor.years_of_experience || 'N/A'} years
             </p>
             <p className="text-gray-600 mb-2">
-              <strong className="text-indigo-700">Location:</strong> {doctor.location}
+              <strong className="text-indigo-700">Location:</strong> {doctor.location || 'N/A'}
             </p>
             <p className="text-gray-600">
-              <strong className="text-indigo-700">Coordinates:</strong> {doctor.latitude}, {doctor.longitude}
+              <strong className="text-indigo-700">Coordinates:</strong> {doctor.latitude || 'N/A'}, {doctor.longitude || 'N/A'}
             </p>
             <button
               onClick={() => handleDeleteDoctor(doctor._id)}

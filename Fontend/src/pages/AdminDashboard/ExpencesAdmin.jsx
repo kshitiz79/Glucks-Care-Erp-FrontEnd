@@ -4,14 +4,25 @@ import BASE_URL from '../../BaseUrl/baseUrl';
 
 const ExpencesAdmin = () => {
   const [groupedExpenses, setGroupedExpenses] = useState([]);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetch(`${BASE_URL}/api/expenses`)
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to fetch expenses');
+        }
+        return response.json();
+      })
       .then(data => {
         if (Array.isArray(data)) {
           const groups = data.reduce((acc, expense) => {
             const userId = expense.user;
+            // Skip expenses with missing userName
+            if (!expense.userName) {
+              console.warn(`Expense with ID ${expense._id} has no userName`);
+              return acc;
+            }
             if (!acc[userId]) {
               acc[userId] = {
                 userId,
@@ -24,12 +35,29 @@ const ExpencesAdmin = () => {
           }, {});
           setGroupedExpenses(Object.values(groups));
         } else {
-          console.error('Error fetching expenses:', data.message);
-          setGroupedExpenses([]);
+          throw new Error('Invalid response format');
         }
       })
-      .catch(error => console.error('Error fetching expenses:', error));
+      .catch(error => {
+        console.error('Error fetching expenses:', error);
+        setError(error.message);
+        setGroupedExpenses([]);
+      });
   }, []);
+
+  if (error) {
+    return (
+      <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center py-12">
+            <div className="text-4xl mb-4">❌</div>
+            <p className="text-gray-600 text-lg">Error loading expenses</p>
+            <p className="text-gray-500 mt-2">{error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
@@ -37,9 +65,8 @@ const ExpencesAdmin = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-            <span className="text-indigo-600">📊</span>  Expenses Dashboard
+            <span className="text-indigo-600">📊</span> Expenses Dashboard
           </h1>
-       
         </div>
 
         {/* Stats Cards Container */}
@@ -55,12 +82,12 @@ const ExpencesAdmin = () => {
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center">
                     <span className="text-xl font-semibold text-indigo-600">
-                      {group.userName.charAt(0).toUpperCase()}
+                      {group.userName ? group.userName.charAt(0).toUpperCase() : '?'}
                     </span>
                   </div>
                   <div>
                     <h2 className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">
-                      {group.userName}
+                      {group.userName || 'Unknown User'}
                     </h2>
                     <p className="text-sm text-gray-500">User ID: {group.userId.slice(-6)}</p>
                   </div>
@@ -71,7 +98,7 @@ const ExpencesAdmin = () => {
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">Pending Requests</span>
                     <span className="text-lg font-semibold text-indigo-600">
-                      {group.expenses.length}
+                      {group.expenses.filter(exp => exp.status === 'pending').length}
                     </span>
                   </div>
                   <div className="mt-2 flex items-center text-sm text-gray-500">

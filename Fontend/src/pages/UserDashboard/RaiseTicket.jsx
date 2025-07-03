@@ -1,7 +1,9 @@
+// src/components/RaiseTicket.js
 import React, { useState, useContext, useEffect } from 'react';
 import { AuthContext } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import BASE_URL from '../../BaseUrl/baseUrl';
 
 const RaiseTicket = () => {
   const { user } = useContext(AuthContext);
@@ -11,47 +13,78 @@ const RaiseTicket = () => {
     title: '',
     description: '',
     image: null,
-    status: 'IN PROGRESS', // Default status
+    status: 'IN PROGRESS',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [tickets, setTickets] = useState([]);
   const [fetchError, setFetchError] = useState('');
+  const [fetchLoading, setFetchLoading] = useState(true);
+  // new: state to capture debug logs
+  const [logs, setLogs] = useState([]);
 
   // Redirect if not logged in
-  if (!user) {
-    navigate('/login');
-    return null;
-  }
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
 
-  // Fetch user's tickets
+  // Fetch user's tickets with timeout
   const fetchUserTickets = async () => {
     try {
-      const response = await fetch('http://localhost:5050/api/tickets/user', {
+      setFetchLoading(true);
+      const token = localStorage.getItem('token');
+      // capture token-fetch in UI logs
+      setLogs((l) => [...l, `🔑 Fetching with token: ${token}`]);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+
+      const response = await fetch(`${BASE_URL}/api/tickets/user`, {
         method: 'GET',
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.msg || 'Failed to fetch tickets');
+        throw new Error(errorData.msg || `HTTP error! Status: ${response.status}`);
       }
 
       const data = await response.json();
-      // Ensure data is an array; use data.Data if API returns an object
+      // capture received data in UI logs
+      setLogs((l) => [...l, `✅ Received ${Array.isArray(data) ? data.length : 'N/A'} tickets`]);
+
       const ticketData = Array.isArray(data) ? data : data.Data || [];
-      setTickets(ticketData);
+      const sanitizedTickets = ticketData.map((ticket) => ({
+        ...ticket,
+        userId: ticket.userId ? ticket.userId.toString() : 'Unknown',
+      }));
+      setTickets(sanitizedTickets);
       setFetchError('');
     } catch (err) {
-      setFetchError(err.message);
+      setLogs((l) => [...l, `❌ Fetch error: ${err.message}`]);
+      setFetchError(
+        err.name === 'AbortError'
+          ? 'Request timed out'
+          : err.message || 'Failed to fetch tickets'
+      );
+    } finally {
+      setFetchLoading(false);
     }
   };
 
   useEffect(() => {
-    if (user) fetchUserTickets();
-  }, []);
+    if (user && user._id) {
+      fetchUserTickets();
+    }
+  }, [user]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -64,38 +97,60 @@ const RaiseTicket = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError('');
+
     const formDataToSend = new FormData();
     formDataToSend.append('title', formData.title);
     formDataToSend.append('description', formData.description);
     formDataToSend.append('userName', user.name);
     formDataToSend.append('status', formData.status);
-    if (user._id) formDataToSend.append('userId', user._id);
-    if (formData.image) formDataToSend.append('image', formData.image);
-  
+    formDataToSend.append('userId', user._id);
+
+    if (formData.image) {
+      formDataToSend.append('image', formData.image);
+    }
+
     try {
-      const response = await fetch('http://localhost:5050/api/tickets', {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+
+      const response = await fetch(`${BASE_URL}/api/tickets`, {
         method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         body: formDataToSend,
+        signal: controller.signal,
       });
-  
+
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('Error response:', errorData); // Log error response
         throw new Error(errorData.msg || 'Failed to raise ticket');
       }
-  
+
+      const result = await response.json();
       alert('Ticket raised successfully!');
       setFormData({ title: '', description: '', image: null, status: 'IN PROGRESS' });
-      document.querySelector('input[type="file"]').value = '';
+      document.querySelector('input[type="file"]').value = ''; // Reset file input
+      await fetchUserTickets(); // Refresh tickets
     } catch (err) {
-      console.error('Submit error:', err);
-      setError(err.message);
+      setError(err.name === 'AbortError' ? 'Request timed out' : err.message || 'Failed to raise ticket');
+    } finally {
+      setLoading(false);
     }
   };
-  
+
   return (
     <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -156,9 +211,7 @@ const RaiseTicket = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Image (Optional)
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Image (Optional)</label>
               <input
                 type="file"
                 name="image"
@@ -169,7 +222,7 @@ const RaiseTicket = () => {
             </div>
             <motion.button
               type="submit"
-              className={`w-full bg-indigo-600 text-white p-3 rounded-lg ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`w-full bg-indigo-600 text-white p-3 rounded-lg ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-indigo-700'}`}
               disabled={loading}
             >
               {loading ? 'Submitting...' : 'Raise Ticket'}
@@ -186,7 +239,9 @@ const RaiseTicket = () => {
           <h2 className="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
             <span className="text-indigo-600">📋</span> Your Tickets
           </h2>
-          {fetchError && (
+          {fetchLoading ? (
+            <div className="text-center text-lg font-medium">🔄 Loading tickets...</div>
+          ) : fetchError ? (
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -194,52 +249,53 @@ const RaiseTicket = () => {
             >
               {fetchError}
             </motion.p>
+          ) : tickets.length === 0 ? (
+            <motion.div className="text-center py-12 bg-white rounded-xl shadow-md">
+              <div className="text-4xl mb-4">📭</div>
+              <p className="text-gray-600 text-lg">You haven't raised any tickets yet.</p>
+            </motion.div>
+          ) : (
+            <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {tickets.map((ticket) => (
+                <motion.div
+                  key={ticket._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-all duration-300"
+                >
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2 truncate">{ticket.title}</h3>
+                  <p className="text-gray-600 mb-3 line-clamp-3">{ticket.description}</p>
+                  <div className="text-sm font-semibold text-indigo-600 mb-3">
+                    Status: <span className="text-gray-600">{ticket.status}</span>
+                  </div>
+                  {ticket.image ? (
+                    <img
+                      src={ticket.image}
+                      alt={ticket.title}
+                      className="w-full h-40 object-cover rounded-lg mb-3"
+                      onError={(e) => { e.target.style.display = 'none'; }}
+                    />
+                  ) : (
+                    <p className="text-gray-500 mb-3 text-sm">No image uploaded</p>
+                  )}
+                  <p className="text-sm text-gray-500">
+                    Raised on: {new Date(ticket.createdAt).toLocaleDateString()}
+                  </p>
+                </motion.div>
+              ))}
+            </motion.div>
           )}
-{tickets.length === 0 ? (
-  <motion.div className="text-center py-12 bg-white rounded-xl shadow-md">
-    <div className="text-4xl mb-4">📭</div>
-    <p className="text-gray-600 text-lg">You haven't raised any tickets yet.</p>
-  </motion.div>
-) : (
-  <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-    {tickets.map((ticket) => (
-      <motion.div
-        key={ticket._id}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-all duration-300"
-      >
-        <h3 className="text-lg font-semibold text-gray-900 mb-2 truncate">{ticket.title}</h3>
-        <p className="text-gray-600 mb-3 line-clamp-3">{ticket.description}</p>
-        
-        {/* Display Ticket Status */}
-        <div className="text-sm font-semibold text-indigo-600 mb-3">
-          Status: <span className="text-gray-600">{ticket.status}</span>
-        </div>
 
-        {ticket.image ? (
-          <img
-            src={ticket.image}
-            alt={ticket.title}
-            className="w-full h-40 object-cover rounded-lg mb-3"
-            onError={(e) => {
-              console.error('Image load error for ticket:', ticket._id);
-              e.target.style.display = 'none';
-            }}
-          />
-        ) : (
-          <p className="text-gray-500 mb-3 text-sm">No image uploaded</p>
-        )}
-        
-        <p className="text-sm text-gray-500">
-          Raised on: {new Date(ticket.createdAt).toLocaleDateString()}
-        </p>
-      </motion.div>
-    ))}
-  </motion.div>
-)}
-
+          {/* NEW: Render debug logs */}
+          {logs.length > 0 && (
+            <div className="mt-8 p-4 bg-gray-50 rounded-lg space-y-1 text-xs">
+              <h4 className="font-semibold">Debug Logs:</h4>
+              {logs.map((log, i) => (
+                <pre key={i} className="whitespace-pre-wrap">{log}</pre>
+              ))}
+            </div>
+          )}
         </motion.div>
       </div>
     </div>

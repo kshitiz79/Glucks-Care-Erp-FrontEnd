@@ -118,7 +118,7 @@ function App() {
 
             <Route path="order" element={<Orders />} />
             <Route path="expences" element={<Expences />} />
-            <Route path="reports" element={<Report />} />
+   
             <Route path="brochers-img" element={<Broucher />} />
             <Route path="daily-img" element={<DailyPost />} />
             <Route path="promotional-img" element={<PromotionImg />} />
@@ -130,9 +130,10 @@ function App() {
 
             <Route path="stockist-visit" element={<StockistVisite />} />
             <Route path="rase-ticket" element={<RaiseTicket />} />
-
+   <Route path="reports/*" element={<Report />} />
             <Route path="get-notification" element={<GetNotification />} />
           </Route>
+
         </Route>
       </Routes>
     </Router>

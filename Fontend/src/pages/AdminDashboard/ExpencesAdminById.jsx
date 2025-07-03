@@ -67,14 +67,14 @@ const ExpencesAdminById = () => {
 
   if (expenses.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center ">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-gray-600 text-lg animate-pulse">Loading expense details...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen  py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8 flex items-center justify-between">
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
@@ -102,11 +102,35 @@ const ExpencesAdminById = () => {
                   <span className="font-semibold">Category:</span> {expense.category}
                 </p>
                 <p className="text-sm text-gray-600">
-                  <span className="font-semibold">Amount:</span> ${expense.amount}
+                  <span className="font-semibold">Amount:</span> ₹{expense.amount}
                 </p>
                 <p className="text-sm text-gray-600">
-                  <span className="font-semibold">Description:</span> {expense.description}
+                  <span className="font-semibold">Description:</span> {expense.description || 'N/A'}
                 </p>
+                {expense.category === 'daily' && expense.dailyAllowanceType && (
+                  <p className="text-sm text-gray-600">
+                    <span className="font-semibold">Allowance Type:</span>{' '}
+                    {expense.dailyAllowanceType === 'headoffice' ? 'Head Office (₹150)' : 'Outside Head Office (₹175)'}
+                  </p>
+                )}
+                {expense.category === 'travel' && expense.travelDetails && expense.travelDetails.length > 0 && (
+                  <div className="text-sm text-gray-600">
+                    <span className="font-semibold">Travel Details:</span>
+                    <ul className="ml-4 list-disc">
+                      {expense.travelDetails.map((leg, idx) => (
+                        <li key={idx}>
+                          {leg.from} to {leg.to}: {leg.km} km
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="mt-1">
+                      <span className="font-semibold">Total Distance:</span> {expense.totalDistanceKm} km
+                    </p>
+                    <p>
+                      <span className="font-semibold">Rate per Km:</span> ₹{expense.ratePerKm}
+                    </p>
+                  </div>
+                )}
                 <p className="text-sm">
                   <span className="font-semibold">Status:</span>{' '}
                   <span
@@ -120,6 +144,10 @@ const ExpencesAdminById = () => {
                   >
                     {expense.status}
                   </span>
+                </p>
+                <p className="text-sm text-gray-600">
+                  <span className="font-semibold">Date:</span>{' '}
+                  {new Date(expense.date).toLocaleDateString()}
                 </p>
               </div>
 
@@ -150,7 +178,7 @@ const ExpencesAdminById = () => {
                   className={`flex-1 px-4 py-2 rounded-lg text-white text-sm font-medium transition-all ${
                     loadingAction[expense._id] === 'approve'
                       ? 'bg-green-400 animate-pulse'
-                      : 'bg-green-600 hover:bg-green-700'
+                     : 'bg-green-600 hover:bg-green-700'
                   } ${expense.status !== 'pending' ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   {loadingAction[expense._id] === 'approve' ? 'Approving...' : 'Approve'}

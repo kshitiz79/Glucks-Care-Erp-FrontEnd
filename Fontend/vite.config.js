@@ -5,5 +5,5 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/mr-login',  // Set base path to match the subdirectory
+  base: '/mr-login/',  // Set base path to match the subdirectory
 });
