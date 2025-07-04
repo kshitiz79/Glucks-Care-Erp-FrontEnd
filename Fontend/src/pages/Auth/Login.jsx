@@ -21,11 +21,7 @@ const Login = () => {
         headOffice: data.user.headOffice || data.headOffice?.id || null
       };
 
-      if (!userData.headOffice) {
-        console.error('No headOffice found in login response');
-        alert('No head office assigned to your account. Please contact an administrator.');
-        return;
-      }
+    
 
       login(userData, data.token);
 

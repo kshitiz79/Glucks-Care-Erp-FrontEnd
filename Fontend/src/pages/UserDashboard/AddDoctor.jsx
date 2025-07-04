@@ -217,7 +217,7 @@ const AddDoctor = () => {
 
       {/* Form */}
       {showForm && (
-        <LoadScript googleMapsApiKey="AIzaSyCLRC2KUtUshQ7B1YX_gFaKYadrpThcM3g" libraries={libraries}>
+        <LoadScript googleMapsApiKey="AIzaSyBbiU_NzDhQsrPJiH8dzchmVdkXnS2f_Pg" libraries={libraries}>
           <form
             onSubmit={handleSubmit}
             className="bg-white rounded-2xl shadow-xl p-8 mb-8 transform transition-all duration-500 ease-in-out"
