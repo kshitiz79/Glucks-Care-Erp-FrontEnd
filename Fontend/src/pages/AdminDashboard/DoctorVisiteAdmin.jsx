@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import BASE_URL from '../../BaseUrl/baseUrl';
 
 const DoctorVisiteAdmin = () => {
   const [visits, setVisits] = useState([]);
@@ -8,7 +9,7 @@ const DoctorVisiteAdmin = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch('http://localhost:5050/api/doctor-visits')
+    fetch(`${BASE_URL}/api/doctor-visits`)
       .then((res) => res.json())
       .then((data) => {
         setVisits(data);

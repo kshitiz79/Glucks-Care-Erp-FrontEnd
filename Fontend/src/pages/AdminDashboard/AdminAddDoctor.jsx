@@ -1,12 +1,15 @@
 // src/pages/AdminAddDoctor.jsx
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { deleteDoctor } from '../../api/doctorApi';
 import BASE_URL from '../../BaseUrl/baseUrl';
 
 const AdminAddDoctor = () => {
+  const navigate = useNavigate();
   const [doctors, setDoctors] = useState([]);
   const [headOffices, setHeadOffices] = useState([]);
-
   const [showForm, setShowForm] = useState(false);
+  const [editingDoctor, setEditingDoctor] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     specialization: '',
@@ -50,8 +53,13 @@ const AdminAddDoctor = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('https://medi-glucks-erp.onrender.com/api/doctors', {
-        method: 'POST',
+      const url = editingDoctor 
+        ? `${BASE_URL}/api/doctors/${editingDoctor._id}`
+        : `${BASE_URL}/api/doctors`;
+      const method = editingDoctor ? 'PUT' : 'POST';
+      
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: formData.name,
@@ -64,37 +72,84 @@ const AdminAddDoctor = () => {
           date_of_birth: formData.date_of_birth,
           gender: formData.gender,
           anniversary: formData.anniversary,
-          head_office: formData.head_office,
-         
+          headOffice: formData.head_office,
         }),
       });
+      
       if (!res.ok) {
         const errData = await res.json();
-        alert(errData.message || 'Error creating doctor.');
+        alert(errData.message || `Error ${editingDoctor ? 'updating' : 'creating'} doctor.`);
         return;
       }
-      const newDoctor = await res.json();
-      setDoctors(prev => [...prev, newDoctor]);
-      alert('Doctor created successfully!');
-      setFormData({
-        name: '',
-        specialization: '',
-        location: '',
-        email: '',
-        phone: '',
-        registration_number: '',
-        years_of_experience: '',
-        date_of_birth: '',
-        gender: '',
-        anniversary: '',
-        head_office: '',
-     
-      });
-      setShowForm(false);
+      
+      const doctorData = await res.json();
+      
+      if (editingDoctor) {
+        setDoctors(prev => prev.map(doc => doc._id === editingDoctor._id ? doctorData : doc));
+        alert('Doctor updated successfully!');
+      } else {
+        setDoctors(prev => [...prev, doctorData]);
+        alert('Doctor created successfully!');
+      }
+      
+      resetForm();
     } catch (error) {
       console.error(error);
       alert('Server error. Please try again.');
     }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      specialization: '',
+      location: '',
+      email: '',
+      phone: '',
+      registration_number: '',
+      years_of_experience: '',
+      date_of_birth: '',
+      gender: '',
+      anniversary: '',
+      head_office: '',
+    });
+    setShowForm(false);
+    setEditingDoctor(null);
+  };
+
+  const handleEdit = (doctor) => {
+    setEditingDoctor(doctor);
+    setFormData({
+      name: doctor.name || '',
+      specialization: doctor.specialization || '',
+      location: doctor.location || '',
+      email: doctor.email || '',
+      phone: doctor.phone || '',
+      registration_number: doctor.registration_number || '',
+      years_of_experience: doctor.years_of_experience || '',
+      date_of_birth: doctor.date_of_birth ? doctor.date_of_birth.split('T')[0] : '',
+      gender: doctor.gender || '',
+      anniversary: doctor.anniversary ? doctor.anniversary.split('T')[0] : '',
+      head_office: typeof doctor.headOffice === 'object' ? doctor.headOffice._id : doctor.headOffice || '',
+    });
+    setShowForm(true);
+  };
+
+  const handleDelete = async (doctorId) => {
+    if (window.confirm('Are you sure you want to delete this doctor?')) {
+      try {
+        await deleteDoctor(doctorId);
+        setDoctors(prev => prev.filter(doc => doc._id !== doctorId));
+        alert('Doctor deleted successfully!');
+      } catch (error) {
+        console.error('Error deleting doctor:', error);
+        alert('Failed to delete doctor');
+      }
+    }
+  };
+
+  const handleViewDetail = (doctorId) => {
+    navigate(`/admin-dashboard/doctor-detail/${doctorId}`);
   };
 
   return (
@@ -105,7 +160,13 @@ const AdminAddDoctor = () => {
           Doctors
         </h2>
         <button
-          onClick={() => setShowForm(prev => !prev)}
+          onClick={() => {
+            if (showForm && editingDoctor) {
+              resetForm();
+            } else {
+              setShowForm(prev => !prev);
+            }
+          }}
           className="md:px-6 md:py-2 py-1 px-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-full shadow-lg hover:shadow-xl text-xs md:text-base hover:from-indigo-700 hover:to-blue-700 transition-all duration-300 transform hover:-translate-y-1"
         >
           {showForm ? 'Close Form' : '+ Add Doctor'}
@@ -119,7 +180,7 @@ const AdminAddDoctor = () => {
           className="bg-white rounded-2xl shadow-xl p-8 mb-8 transform transition-all duration-500 ease-in-out scale-100 hover:scale-102"
         >
           <h3 className="text-2xl font-bold text-gray-800 mb-6">
-            Add New Doctor
+            {editingDoctor ? 'Edit Doctor' : 'Add New Doctor'}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Name */}
@@ -304,7 +365,7 @@ const AdminAddDoctor = () => {
               type="submit"
               className="px-6 py-3 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-lg shadow-md hover:shadow-lg hover:from-green-600 hover:to-teal-600 transition-all duration-300 transform hover:-translate-y-1"
             >
-              Add Doctor
+              {editingDoctor ? 'Update Doctor' : 'Add Doctor'}
             </button>
           </div>
         </form>
@@ -315,10 +376,42 @@ const AdminAddDoctor = () => {
         {doctors.map((doctor) => (
           <div
             key={doctor._id}
-            className="bg-white rounded-xl shadow-lg p-6 transform transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:scale-105"
+            className="bg-white rounded-xl shadow-lg p-6 transform transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:scale-105 relative"
             style={{ perspective: '1000px' }}
           >
-            <h3 className="text-xl font-semibold text-gray-800 mb-3 truncate">
+            {/* Action Buttons */}
+            <div className="absolute top-4 right-4 flex space-x-2">
+              <button
+                onClick={() => handleViewDetail(doctor._id)}
+                className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded-full transition-all"
+                title="View Details"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+              </button>
+              <button
+                onClick={() => handleEdit(doctor)}
+                className="p-2 text-green-600 hover:text-green-800 hover:bg-green-100 rounded-full transition-all"
+                title="Edit Doctor"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
+              </button>
+              <button
+                onClick={() => handleDelete(doctor._id)}
+                className="p-2 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-full transition-all"
+                title="Delete Doctor"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+              </button>
+            </div>
+
+            <h3 className="text-xl font-semibold text-gray-800 mb-3 truncate pr-20">
               {doctor.name}
             </h3>
             <p className="text-gray-600 mb-2">

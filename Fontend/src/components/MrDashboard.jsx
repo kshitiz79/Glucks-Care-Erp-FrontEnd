@@ -10,7 +10,7 @@ import {
   FiFileText,
   FiSearch,
   FiBell,
- 
+  FiSun,
   FiMoon,
   FiChevronDown,
   FiMapPin,
@@ -19,7 +19,9 @@ import {
   FiBarChart2,
   FiUser,
   FiLogOut,
-  FiSettings
+  FiSettings,
+  FiMenu,
+  FiX
 } from 'react-icons/fi';
 import logo from './../../public/logo.png';
 import { AuthContext } from '../context/AuthContext';
@@ -40,23 +42,43 @@ export default function MrDashboard() {
 
 
   const menuItems = [
-    { to: '/mr-dashboard', icon: FiHome, label: 'Dashboard', exact: true },
-    { to: '/mr-dashboard/pdf-files', icon: FiFileText, label: 'Pdf & Files' },
-    { to: '/mr-dashboard/brochers-img', icon: FiBookOpen, label: 'Brochure' },
-    { to: '/mr-dashboard/promotional-img', icon: BsFileImage, label: 'Promotion Images' },
-    { to: '/mr-dashboard/daily-img', icon: SlSocialInstagram, label: 'Daily Post' },
-    { to: '/mr-dashboard/add-doctor', icon: FiUserPlus, label: 'Add Doctors' },
-    { to: '/mr-dashboard/doctor-visiting', icon: FiCalendar, label: 'Doctor Visiting' },
-    { to: '/mr-dashboard/add-chemist', icon: FiUserPlus, label: 'Add Chemist' },
-    { to: '/mr-dashboard/chemist-visit', icon: FiMapPin, label: 'Visit Chemist' },
-    { to: '/mr-dashboard/add-stockist', icon: FiUserPlus, label: 'Add Stockist' },
-    { to: '/mr-dashboard/stockist-visit', icon: FiMapPin, label: 'Stockist Visiting' },
-    { to: '/mr-dashboard/sales-activity', icon: FiTrendingUp, label: 'Sales Activity' },
-    { to: '/mr-dashboard/add-products', icon: FiPackage, label: 'Product' },
-    { to: '/mr-dashboard/order', icon: FiShoppingCart, label: 'Order' },
-    { to: '/mr-dashboard/expences', icon: FiDollarSign, label: 'Expenses' },
-    { to: '/mr-dashboard/rase-ticket', icon: TicketCheckIcon, label: 'Rase Ticket' },
-    { to: '/mr-dashboard/reports', icon: FiBarChart2, label: 'Reports' },
+    {
+      category: 'Overview',
+      items: [
+        { to: '/mr-dashboard', icon: FiHome, label: 'Dashboard', exact: true },
+        { to: '/mr-dashboard/reports', icon: FiBarChart2, label: 'Reports' },
+      ]
+    },
+    {
+      category: 'Content Management',
+      items: [
+        { to: '/mr-dashboard/pdf-files', icon: FiFileText, label: 'PDF & Files' },
+        { to: '/mr-dashboard/brochers-img', icon: FiBookOpen, label: 'Brochures' },
+        { to: '/mr-dashboard/promotional-img', icon: BsFileImage, label: 'Promotional Images' },
+        { to: '/mr-dashboard/daily-img', icon: SlSocialInstagram, label: 'Daily Posts' },
+      ]
+    },
+    {
+      category: 'Client Management',
+      items: [
+        { to: '/mr-dashboard/add-doctor', icon: FiUserPlus, label: 'Add Doctors' },
+        { to: '/mr-dashboard/doctor-visiting', icon: FiCalendar, label: 'Doctor Visits' },
+        { to: '/mr-dashboard/add-chemist', icon: FiUserPlus, label: 'Add Chemists' },
+        { to: '/mr-dashboard/chemist-visit', icon: FiMapPin, label: 'Chemist Visits' },
+        { to: '/mr-dashboard/add-stockist', icon: FiUserPlus, label: 'Add Stockists' },
+        { to: '/mr-dashboard/stockist-visit', icon: FiMapPin, label: 'Stockist Visits' },
+      ]
+    },
+    {
+      category: 'Business Operations',
+      items: [
+        { to: '/mr-dashboard/sales-activity', icon: FiTrendingUp, label: 'Sales Activity' },
+        { to: '/mr-dashboard/add-products', icon: FiPackage, label: 'Products' },
+        { to: '/mr-dashboard/order', icon: FiShoppingCart, label: 'Orders' },
+        { to: '/mr-dashboard/expences', icon: FiDollarSign, label: 'Expenses' },
+        { to: '/mr-dashboard/rase-ticket', icon: TicketCheckIcon, label: 'Support Tickets' },
+      ]
+    }
   ];
 
   useEffect(() => {
@@ -69,9 +91,9 @@ export default function MrDashboard() {
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ 
-              latitude, 
-              longitude, 
+            body: JSON.stringify({
+              latitude,
+              longitude,
               userName: user ? user.name : undefined,
               userId: user ? user.id : undefined
             })
@@ -94,9 +116,12 @@ export default function MrDashboard() {
     }
   }, [user]);
 
-  const filteredMenuItems = menuItems.filter(item =>
-    item.label.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredMenuItems = menuItems.map(category => ({
+    ...category,
+    items: category.items.filter(item =>
+      item.label.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  })).filter(category => category.items.length > 0);
 
   useEffect(() => {
     const fetchUnreadCount = async () => {
@@ -129,77 +154,101 @@ export default function MrDashboard() {
   };
 
   return (
-    <div className={`flex h-screen overflow-hidden ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50'}`}>
+    <div className={`flex h-screen overflow-hidden transition-colors duration-300 ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50'}`}>
       {/* Mobile Sidebar Toggle */}
       <button
         onClick={() => setIsSidebarOpen(true)}
-        className="md:hidden fixed bottom-6 right-6 z-50 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 transition-all"
+        className="md:hidden fixed top-4 left-4 z-50 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-3 rounded-xl shadow-lg hover:from-blue-700 hover:to-blue-800 transition-all transform hover:scale-105"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
+        <FiMenu className="h-5 w-5" />
       </button>
 
       {/* Sidebar */}
       <aside
         className={`
-          w-72 ${darkMode ? 'bg-gray-800' : 'bg-white'} overflow-y-auto fixed z-30 inset-y-0 left-0
-          transform transition-all duration-300 ease-in-out shadow-xl
+          w-80 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} 
+          overflow-y-auto fixed z-30 inset-y-0 left-0 border-r
+          transform transition-all duration-300 ease-in-out shadow-2xl
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           md:static md:translate-x-0 
         `}
       >
-        <div className="border-b border-gray-200 dark:border-gray-700 flex items-center p-6 px-8">
-          <img src={logo} className="w-36" alt="Logo" />
+        {/* Header with Logo and Close Button */}
+        <div className={`border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'} flex items-center justify-between p-6`}>
+          <img src={logo} className="w-36" alt="Company Logo" />
+          <button
+            onClick={() => setIsSidebarOpen(false)}
+            className="md:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          >
+            <FiX className="h-5 w-5" />
+          </button>
         </div>
-        
-        {/* Search in sidebar for mobile */}
-        <div className="p-4 md:hidden">
+
+        {/* Search in sidebar */}
+        <div className="p-4">
           <div className="relative">
-            <FiSearch className="absolute left-3 top-3 text-gray-400" />
+            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
               placeholder="Search menu..."
-              className={`w-full pl-10 pr-4 py-2 rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-gray-100'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              className={`w-full pl-10 pr-4 py-3 rounded-xl border transition-all duration-200 ${darkMode
+                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500'
+                  : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-500 focus:border-blue-500'
+                } focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         </div>
-        
-        <nav className="p-4">
-          <ul className="space-y-1">
-            {filteredMenuItems.map((item) => (
-              <li key={item.to}>
-                <NavLink
-                  to={item.to}
-                  end={item.exact || false}
-                  onClick={() => setIsSidebarOpen(false)}
-                  className={({ isActive }) =>
-                    `flex items-center p-3 rounded-lg transition-all duration-200 ${
-                      isActive
-                        ? `${darkMode ? 'bg-blue-900 text-blue-100' : 'bg-blue-50 text-blue-600'} font-medium`
-                        : `${darkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-100'}`
-                    }`
-                  }
-                >
-                  <item.icon className="mr-3 text-lg flex-shrink-0" />
-                  <span className="truncate">{item.label}</span>
-                </NavLink>
-              </li>
-            ))}
-          </ul>
-        </nav>
-        
-        {/* User info in sidebar */}
-        <div className={`p-4 mt-auto border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-          <div className="flex items-center space-x-3">
-            <div className={`flex items-center justify-center w-10 h-10 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-blue-100'}`}>
-              <FiUser className={`w-5 h-5 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
+
+        {/* Navigation Menu */}
+        <nav className="px-4 pb-4 space-y-6">
+          {filteredMenuItems.map((category) => (
+            <div key={category.category}>
+              <h3 className={`text-xs font-semibold uppercase tracking-wider mb-3 px-3 ${darkMode ? 'text-gray-400' : 'text-gray-500'
+                }`}>
+                {category.category}
+              </h3>
+              <ul className="space-y-1">
+                {category.items.map((item) => (
+                  <li key={item.to}>
+                    <NavLink
+                      to={item.to}
+                      end={item.exact || false}
+                      onClick={() => setIsSidebarOpen(false)}
+                      className={({ isActive }) =>
+                        `flex items-center p-3 rounded-xl transition-all duration-200 group ${isActive
+                          ? `${darkMode ? 'bg-gradient-to-r from-blue-900 to-blue-800 text-blue-100 shadow-lg' : 'bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 shadow-md'} font-medium`
+                          : `${darkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'}`
+                        }`
+                      }
+                    >
+                      <item.icon className="mr-3 text-lg flex-shrink-0 group-hover:scale-110 transition-transform" />
+                      <span className="truncate">{item.label}</span>
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <div>
-              <p className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>{user?.name}</p>
-              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Medical Representative</p>
+          ))}
+        </nav>
+
+        {/* User Profile Card */}
+        <div className={`p-4 mt-auto border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+          <div className={`p-4 rounded-xl ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+            <div className="flex items-center space-x-3">
+              <div className={`flex items-center justify-center w-12 h-12 rounded-full ${darkMode ? 'bg-gradient-to-r from-blue-600 to-blue-700' : 'bg-gradient-to-r from-blue-500 to-blue-600'
+                } shadow-lg`}>
+                <FiUser className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`font-semibold truncate ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  {user?.name || 'User'}
+                </p>
+                <p className={`text-sm truncate ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  Medical Representative
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -208,97 +257,161 @@ export default function MrDashboard() {
       {/* Overlay for mobile sidebar */}
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-20 md:hidden"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-20 md:hidden transition-opacity duration-300"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
       {/* Main content area */}
-      <div className="flex-1 flex flex-col overflow-y-auto">
-        <header className={`sticky top-0 z-10 ${darkMode ? 'bg-gray-800' : 'bg-white'} p-4 flex items-center justify-between shadow-sm`}>
-          <div className="flex items-center space-x-4">
-            <h1 className="text-xl font-bold text-blue-600 dark:text-blue-400">
-              Welcome back, {user ? user.name : 'User'}!
-            </h1>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            {/* Search bar */}
-            <div className="hidden md:block relative">
-              <FiSearch className="absolute left-3 top-3 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search..."
-                className={`pl-10 pr-4 py-2 rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-gray-100'} focus:outline-none focus:ring-2 focus:ring-blue-500 w-64`}
-              />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header */}
+        <header className={`sticky top-0 z-10 ${darkMode ? 'bg-gray-800/95 border-gray-700' : 'bg-white/95 border-gray-200'
+          } backdrop-blur-md border-b px-6 py-4`}>
+          <div className="flex items-center justify-between">
+            {/* Welcome Section */}
+            <div className="flex items-center space-x-4">
+              <div className="hidden md:block">
+                <h1 className={`text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent`}>
+                  Welcome back, {user?.name || 'User'}!
+                </h1>
+                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  {new Date().toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </p>
+              </div>
+              <div className="md:hidden">
+                <h1 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  Dashboard
+                </h1>
+              </div>
             </div>
-            
-            {/* Action buttons */}
-            <button 
-              onClick={() => setDarkMode(!darkMode)}
-              className={`p-2 rounded-full ${darkMode ? 'text-yellow-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'}`}
-            >
-              <FiMoon size={20} />
-            </button>
-            
-            <button
-          className="relative p-2 hover:bg-gray-100 rounded-full"
-          onClick={() => navigate('/mr-dashboard/get-notification')}
-        >
-          <FiBell size={24} className="text-gray-600" />
-          {unreadCount > 0 && (
-            <span className="absolute top-0 right-0 flex items-center justify-center w-5 h-5 bg-red-500 text-white text-xs rounded-full">
-              {unreadCount}
-            </span>
-          )}
-        </button>
-            
-            {/* Profile dropdown */}
-            <div className="relative">
+
+            {/* Action Bar */}
+            <div className="flex items-center space-x-3">
+              {/* Global Search */}
+              <div className="hidden lg:block relative">
+                <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search anything..."
+                  className={`pl-10 pr-4 py-2.5 rounded-xl border transition-all duration-200 w-80 ${darkMode
+                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500'
+                      : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-500 focus:border-blue-500'
+                    } focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
+                />
+              </div>
+
+              {/* Theme Toggle */}
               <button
-                onClick={() => setIsProfileOpen(!isProfileOpen)}
-                className="flex items-center space-x-2 focus:outline-none"
+                onClick={() => setDarkMode(!darkMode)}
+                className={`p-2.5 rounded-xl transition-all duration-200 ${darkMode
+                    ? 'text-yellow-400 hover:bg-gray-700 bg-gray-700/50'
+                    : 'text-gray-600 hover:bg-gray-100 bg-gray-50'
+                  }`}
+                title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
               >
-                <div className={`flex items-center justify-center w-10 h-10 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-blue-100'}`}>
-                  <FiUser className={`w-5 h-5 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
-                </div>
-                <FiChevronDown className={`transition-transform ${isProfileOpen ? 'rotate-180' : ''} ${darkMode ? 'text-gray-300' : 'text-gray-600'}`} />
+                {darkMode ? <FiSun size={20} /> : <FiMoon size={20} />}
               </button>
-              
-              {isProfileOpen && (
-                <div className={`absolute right-0 mt-2 w-56 shadow-lg rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} border ${darkMode ? 'border-gray-700' : 'border-gray-200'} overflow-hidden`}>
-                  <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-                    <p className="font-medium text-gray-900 dark:text-white">{user?.name}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{user?.email}</p>
+
+              {/* Notifications */}
+              <button
+                className={`relative p-2.5 rounded-xl transition-all duration-200 ${darkMode ? 'hover:bg-gray-700 bg-gray-700/50' : 'hover:bg-gray-100 bg-gray-50'
+                  }`}
+                onClick={() => navigate('/mr-dashboard/get-notification')}
+                title="Notifications"
+              >
+                <FiBell size={20} className={darkMode ? 'text-gray-300' : 'text-gray-600'} />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs rounded-full shadow-lg animate-pulse">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Profile Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className={`flex items-center space-x-3 p-2 rounded-xl transition-all duration-200 ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+                    }`}
+                >
+                  <div className={`flex items-center justify-center w-10 h-10 rounded-full ${darkMode ? 'bg-gradient-to-r from-blue-600 to-blue-700' : 'bg-gradient-to-r from-blue-500 to-blue-600'
+                    } shadow-lg`}>
+                    <FiUser className="w-5 h-5 text-white" />
                   </div>
-                  <div className="py-1">
-                    <button 
-                      onClick={() => {
-                        setIsProfileOpen(false);
-                        navigate('/profile-settings');
-                      }}
-                      className={`flex items-center w-full px-4 py-2 text-left ${darkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-700'}`}
-                    >
-                      <FiSettings className="mr-3" />
-                      Profile Settings
-                    </button>
-                    <button 
-                      onClick={handleLogout}
-                      className={`flex items-center w-full px-4 py-2 text-left ${darkMode ? 'hover:bg-gray-700 text-red-400' : 'hover:bg-gray-100 text-red-600'}`}
-                    >
-                      <FiLogOut className="mr-3" />
-                      Logout
-                    </button>
+                  <div className="hidden sm:block text-left">
+                    <p className={`font-medium text-sm ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {user?.name || 'User'}
+                    </p>
+                    <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                      Medical Rep
+                    </p>
                   </div>
-                </div>
-              )}
+                  <FiChevronDown className={`transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''
+                    } ${darkMode ? 'text-gray-300' : 'text-gray-600'}`} />
+                </button>
+
+                {/* Profile Dropdown Menu */}
+                {isProfileOpen && (
+                  <div className={`absolute right-0 mt-2 w-64 shadow-2xl rounded-2xl ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+                    } border overflow-hidden backdrop-blur-md`}>
+                    <div className={`p-4 border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                      <div className="flex items-center space-x-3">
+                        <div className={`flex items-center justify-center w-12 h-12 rounded-full ${darkMode ? 'bg-gradient-to-r from-blue-600 to-blue-700' : 'bg-gradient-to-r from-blue-500 to-blue-600'
+                          } shadow-lg`}>
+                          <FiUser className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <p className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                            {user?.name || 'User'}
+                          </p>
+                          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                            {user?.email || 'user@example.com'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="py-2">
+                      <button
+                        onClick={() => {
+                          setIsProfileOpen(false);
+                          navigate('/profile-settings');
+                        }}
+                        className={`flex items-center w-full px-4 py-3 text-left transition-colors ${darkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-50 text-gray-700'
+                          }`}
+                      >
+                        <FiSettings className="mr-3" />
+                        Profile Settings
+                      </button>
+                      <button
+                        onClick={handleLogout}
+                        className={`flex items-center w-full px-4 py-3 text-left transition-colors ${darkMode ? 'hover:bg-gray-700 text-red-400' : 'hover:bg-gray-50 text-red-600'
+                          }`}
+                      >
+                        <FiLogOut className="mr-3" />
+                        Sign Out
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </header>
-        
-        <main className={`flex-1 p-6 ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
-          <div className={`rounded-xl p-6 ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-sm`}>
-            <Outlet />
+
+        {/* Main Content */}
+        <main className={`flex-1 overflow-y-auto ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+          <div className="p-6">
+            <div className={`rounded-2xl ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+              } border shadow-xl backdrop-blur-sm`}>
+              <div className="p-6">
+                <Outlet />
+              </div>
+            </div>
           </div>
         </main>
       </div>

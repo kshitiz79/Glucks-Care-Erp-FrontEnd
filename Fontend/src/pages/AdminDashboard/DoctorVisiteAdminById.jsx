@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import BASE_URL from '../../BaseUrl/baseUrl';
 
 const DoctorVisiteAdminById = () => {
   const { userId } = useParams();
@@ -10,7 +11,7 @@ const DoctorVisiteAdminById = () => {
 
   useEffect(() => {
     if (userId) {
-      fetch(`http://localhost:5050/api/doctor-visits/user/${userId}`)
+      fetch(`${BASE_URL}/api/doctor-visits/user/${userId}`)
         .then((res) => {
           if (!res.ok) throw new Error('Failed to fetch visits');
           return res.json();

@@ -19,6 +19,21 @@ export const fetchStockists = async () => {
   return await res.json();
 };
 
+/**
+ * Update an existing stockist by ID
+ */
+export const updateStockist = async (id, stockistData) => {
+  const res = await fetch(`${BASE_URL}/api/stockists/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(stockistData),
+  });
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.message || 'Failed to update stockist');
+  }
+  return await res.json();
+};
 
 
 export const createStockist = async (stockistData) => {

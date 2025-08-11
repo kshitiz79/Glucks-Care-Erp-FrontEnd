@@ -110,9 +110,25 @@ const AllUser = () => {
                     {user.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1">
-                    <p className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors truncate">
-                      {user.name}
-                    </p>
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors truncate">
+                        {user.name}
+                      </p>
+                      {/* User Role Badge */}
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        user.role === 'Super Admin' ? 'bg-purple-100 text-purple-800' :
+                        user.role === 'Admin' ? 'bg-red-100 text-red-800' :
+                        user.role === 'Opps Team' ? 'bg-blue-100 text-blue-800' :
+                        user.role === 'National Head' ? 'bg-orange-100 text-orange-800' :
+                        user.role === 'State Head' ? 'bg-yellow-100 text-yellow-800' :
+                        user.role === 'Zonal Manager' ? 'bg-pink-100 text-pink-800' :
+                        user.role === 'Area Manager' ? 'bg-green-100 text-green-800' :
+                        user.role === 'Manager' ? 'bg-indigo-100 text-indigo-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {user.role}
+                      </span>
+                    </div>
                     <p className="text-sm text-gray-600 truncate">
                       <span className="font-medium">Email:</span> {user.email}
                     </p>

@@ -78,3 +78,17 @@ export const confirmChemistVisit = async (visitId, locationData) => {
   }
   return await res.json();
 };
+
+
+export const updateChemist = async (id, chemistData) => {
+  const res = await fetch(`${BASE_URL}/api/chemists/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(chemistData),
+  });
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.message || 'Failed to update chemist');
+  }
+  return await res.json();
+};

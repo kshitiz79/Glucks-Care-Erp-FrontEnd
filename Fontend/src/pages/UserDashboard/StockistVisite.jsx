@@ -115,85 +115,133 @@ const StockistVisiting = () => {
   };
 
   return (
-    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-purple-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <div className="relative mb-12">
-          <h2 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
-            <span className="text-indigo-600">🏢</span> Your Stockist Visits
-          </h2>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setShowModal(true)}
-            className="absolute top-0 right-0 bg-indigo-600 text-white px-6 py-2 rounded-full shadow-lg hover:bg-indigo-700 transition-all duration-300 flex items-center gap-2"
-          >
-            <span className="text-lg">+</span> Schedule Visit
-          </motion.button>
+        {/* Professional Header */}
+        <div className="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-100">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent flex items-center gap-3">
+                <span className="text-4xl">🏢</span>
+                Stockist Visit Management
+              </h1>
+              <p className="text-gray-600 mt-2 text-lg">Schedule and track visits to your distribution partners</p>
+              <div className="flex items-center gap-6 mt-4">
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                  <span>{scheduledVisits.length} Scheduled</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span>{confirmedVisits.length} Confirmed</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                  <span>{stockists.length} Total Stockists</span>
+                </div>
+              </div>
+            </div>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setShowModal(true)}
+              className="px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-3 font-semibold"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Schedule New Visit
+            </motion.button>
+          </div>
         </div>
 
+        {/* Enhanced Modal */}
         {showModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-gray-200"
             >
-              <h2 className="text-2xl font-semibold text-gray-900 mb-6">Schedule Stockist Visit</h2>
-              <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Modal Header */}
+              <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-6 rounded-t-2xl">
+                <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a1 1 0 011-1h6a1 1 0 011 1v4h3a1 1 0 011 1v1a1 1 0 01-1 1v9a2 2 0 01-2 2H7a2 2 0 01-2-2V9a1 1 0 01-1-1V7a1 1 0 011-1h3z" />
+                  </svg>
+                  Schedule Stockist Visit
+                </h2>
+                <p className="text-purple-100 mt-2">Plan your next distribution partner consultation</p>
+              </div>
+
+              {/* Modal Content */}
+              <form onSubmit={handleSubmit} className="p-6 space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="stockist-select" className="block text-sm font-semibold text-gray-700 mb-2">
                     Choose Stockist <span className="text-red-500">*</span>
                   </label>
                   <select
+                    id="stockist-select"
                     value={selectedStockistId}
-                    onChange={e => setSelectedStockistId(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                    onChange={(e) => setSelectedStockistId(e.target.value)}
+                    className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
+                    aria-required="true"
                   >
                     <option value="">-- Select Stockist --</option>
-                    {stockists.map(stock => (
+                    {stockists.map((stock) => (
                       <option key={stock._id} value={stock._id}>
-                        {stock.firmName}
+                        {stock.firmName} - {stock.contactPerson || 'Contact Person'}
                       </option>
                     ))}
                   </select>
                 </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Date <span className="text-red-500">*</span>
+                  <label htmlFor="date-input" className="block text-sm font-semibold text-gray-700 mb-2">
+                    Visit Date <span className="text-red-500">*</span>
                   </label>
                   <input
+                    id="date-input"
                     type="date"
                     value={date}
-                    onChange={e => setDate(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                    onChange={(e) => setDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                    className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
+                    aria-required="true"
                   />
                 </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Notes <span className="text-red-500">*</span>
+                  <label htmlFor="notes-input" className="block text-sm font-semibold text-gray-700 mb-2">
+                    Visit Notes <span className="text-red-500">*</span>
                   </label>
                   <textarea
+                    id="notes-input"
                     value={notes}
-                    onChange={e => setNotes(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all resize-y"
-                    placeholder="Add visit details"
-                    rows="3"
+                    onChange={(e) => setNotes(e.target.value)}
+                    className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 resize-none"
+                    placeholder="Purpose of visit, products to discuss, or business details..."
+                    rows="4"
+                    aria-required="true"
                   />
                 </div>
-                <div className="flex gap-3">
-                  <button
-                    type="submit"
-                    className="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-all shadow-md"
-                  >
-                    Schedule
-                  </button>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 pt-4">
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-all"
+                    className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium"
                   >
                     Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-3 rounded-xl hover:shadow-lg transition-all duration-200 font-semibold disabled:opacity-50"
+                    disabled={!selectedStockistId || !date || !notes}
+                  >
+                    Schedule Visit
                   </button>
                 </div>
               </form>

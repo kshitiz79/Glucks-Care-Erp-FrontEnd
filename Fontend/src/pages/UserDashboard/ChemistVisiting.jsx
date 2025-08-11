@@ -3,8 +3,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { AuthContext } from './../../context/AuthContext';
 import { fetchChemists, scheduleChemistVisit, fetchChemistVisits, confirmChemistVisit } from './../../api/chemistApi';
-
-const BASE_URL = 'http://localhost:5050';
+import BASE_URL from '../../BaseUrl/baseUrl';
 
 const ChemistVisiting = () => {
   const { user } = useContext(AuthContext);
@@ -154,85 +153,133 @@ const ChemistVisiting = () => {
   
 
   return (
-    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <div className="relative mb-12">
-          <h2 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
-            <span className="text-indigo-600">🧪</span> Your Chemist Visits
-          </h2>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setShowModal(true)}
-            className="absolute top-0 right-0 bg-indigo-600 text-white px-6 py-2 rounded-full shadow-lg hover:bg-indigo-700 transition-all duration-300 flex items-center gap-2"
-          >
-            <span className="text-lg">+</span> Schedule Visit
-          </motion.button>
+        {/* Professional Header */}
+        <div className="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-100">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-transparent flex items-center gap-3">
+                <span className="text-4xl">🧪</span>
+                Chemist Visit Management
+              </h1>
+              <p className="text-gray-600 mt-2 text-lg">Schedule and track visits to your pharmaceutical partners</p>
+              <div className="flex items-center gap-6 mt-4">
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                  <span>{scheduledVisits.length} Scheduled</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span>{confirmedVisits.length} Confirmed</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span>{chemists.length} Total Chemists</span>
+                </div>
+              </div>
+            </div>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setShowModal(true)}
+              className="px-8 py-4 bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-3 font-semibold"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Schedule New Visit
+            </motion.button>
+          </div>
         </div>
 
+        {/* Enhanced Modal */}
         {showModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-gray-200"
             >
-              <h2 className="text-2xl font-semibold text-gray-900 mb-6">Schedule Chemist Visit</h2>
-              <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Modal Header */}
+              <div className="bg-gradient-to-r from-green-600 to-teal-600 p-6 rounded-t-2xl">
+                <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a1 1 0 011-1h6a1 1 0 011 1v4h3a1 1 0 011 1v1a1 1 0 01-1 1v9a2 2 0 01-2 2H7a2 2 0 01-2-2V9a1 1 0 01-1-1V7a1 1 0 011-1h3z" />
+                  </svg>
+                  Schedule Chemist Visit
+                </h2>
+                <p className="text-green-100 mt-2">Plan your next pharmaceutical consultation</p>
+              </div>
+
+              {/* Modal Content */}
+              <form onSubmit={handleSubmit} className="p-6 space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="chemist-select" className="block text-sm font-semibold text-gray-700 mb-2">
                     Choose Chemist <span className="text-red-500">*</span>
                   </label>
                   <select
+                    id="chemist-select"
                     value={selectedChemistId}
                     onChange={(e) => setSelectedChemistId(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                    className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
+                    aria-required="true"
                   >
                     <option value="">-- Select Chemist --</option>
                     {chemists.map((chem) => (
                       <option key={chem._id} value={chem._id}>
-                        {chem.firmName}
+                        {chem.firmName} - {chem.contactPersonName || 'Contact Person'}
                       </option>
                     ))}
                   </select>
                 </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Date <span className="text-red-500">*</span>
+                  <label htmlFor="date-input" className="block text-sm font-semibold text-gray-700 mb-2">
+                    Visit Date <span className="text-red-500">*</span>
                   </label>
                   <input
+                    id="date-input"
                     type="date"
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                    min={new Date().toISOString().split('T')[0]}
+                    className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
+                    aria-required="true"
                   />
                 </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Notes <span className="text-red-500">*</span>
+                  <label htmlFor="notes-input" className="block text-sm font-semibold text-gray-700 mb-2">
+                    Visit Notes <span className="text-red-500">*</span>
                   </label>
                   <textarea
+                    id="notes-input"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all resize-y"
-                    placeholder="Add visit details"
-                    rows="3"
+                    className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 resize-none"
+                    placeholder="Purpose of visit, products to discuss, or consultation details..."
+                    rows="4"
+                    aria-required="true"
                   />
                 </div>
-                <div className="flex gap-3">
-                  <button
-                    type="submit"
-                    className="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-all shadow-md"
-                  >
-                    Schedule
-                  </button>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 pt-4">
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-all"
+                    className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium"
                   >
                     Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 bg-gradient-to-r from-green-600 to-teal-600 text-white px-4 py-3 rounded-xl hover:shadow-lg transition-all duration-200 font-semibold disabled:opacity-50"
+                    disabled={!selectedChemistId || !date || !notes}
+                  >
+                    Schedule Visit
                   </button>
                 </div>
               </form>

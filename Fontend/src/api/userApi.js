@@ -12,6 +12,15 @@ export async function fetchAllUsers() {
   return await response.json();
 }
 
+// Fetch users by role
+export async function fetchUsersByRole(role) {
+  const response = await fetch(`${BASE_URL}/api/users/role/${encodeURIComponent(role)}`);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch ${role} users`);
+  }
+  return await response.json();
+}
+
 
 export async function fetchUserById(userId) {
   const response = await fetch(`${BASE_URL}/api/users/${userId}`);

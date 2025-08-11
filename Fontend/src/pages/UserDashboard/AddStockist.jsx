@@ -1,15 +1,19 @@
 // src/components/AddStockist.jsx
 import React, { useState, useEffect } from 'react';
-import { fetchStockists, createStockist, deleteStockist } from './../../api/stockistApi';
+import { fetchStockists, createStockist, updateStockist, deleteStockist } from './../../api/stockistApi';
 import { fetchHeadOffices } from './../../api/headofficeApi';
 import { LoadScript, GoogleMap, Marker, Autocomplete } from '@react-google-maps/api';
 import { motion } from 'framer-motion';
+import StockistDetail from './StockistDetail';
 
 const libraries = ['places'];
 
 const AddStockist = () => {
   const [stockists, setStockists] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  const [editingStockist, setEditingStockist] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedStockist, setSelectedStockist] = useState(null);
   const [headOffices, setHeadOffices] = useState([]);
   const [formData, setFormData] = useState({
     firmName: '',
@@ -284,16 +288,52 @@ const AddStockist = () => {
                      });
 
   return (
-    <div className="p-8 min-h-screen">
-      <div className="flex justify-between items-center mb-8">
-        <h2 className="text-3xl font-extrabold text-indigo-800">Stockists</h2>
-        <button
-          onClick={() => setShowForm(prev => !prev)}
-          className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
-        >
-          {showForm ? 'Close Form' : '+ Add Stockist'}
-        </button>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-purple-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Professional Header */}
+        <div className="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-100">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent flex items-center gap-3">
+                <span className="text-4xl">🏢</span>
+                Stockist Management
+              </h1>
+              <p className="text-gray-600 mt-2 text-lg">Manage your distribution network and stockist partnerships</p>
+              <div className="flex items-center gap-4 mt-4">
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                  <span>{stockists.length} Total Stockists</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span>Distribution Network</span>
+                </div>
+              </div>
+            </div>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setShowForm(prev => !prev)}
+              className="px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-3 font-semibold"
+            >
+              {showForm ? (
+                <>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Close Form
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Add New Stockist
+                </>
+              )}
+            </motion.button>
+          </div>
+        </div>
 
       {showErrorModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -664,7 +704,7 @@ const AddStockist = () => {
                 />
               </div>
               <div>
-                <label htmlFor="numberOfSalesRepresentatives" className="block text-sm font-semibold text-gray-700">
+              <label htmlFor="numberOfSalesRepresentatives" className="block text-sm font-semibold text-gray-700">
                   Number of Sales Representatives
                 </label>
                 <input
@@ -674,7 +714,8 @@ const AddStockist = () => {
                   value={formData.numberOfSalesRepresentatives}
                   onChange={handleChange}
                   className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
+               />
+           
               </div>
               <div className="col-span-2">
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -760,11 +801,10 @@ const AddStockist = () => {
               <button
                 type="submit"
                 disabled={!isFormValid}
-                className={`px-6 py-3 rounded-lg shadow-md transition-all duration-300 ${
-                  isFormValid
-                    ? 'bg-gradient-to-r from-green-500 to-teal-500 text-white hover:shadow-lg'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
+                className={isFormValid 
+                  ? 'px-6 py-3 rounded-lg shadow-md transition-all duration-300 bg-gradient-to-r from-green-500 to-teal-500 text-white hover:shadow-lg'
+                  : 'px-6 py-3 rounded-lg shadow-md transition-all duration-300 bg-gray-300 text-gray-500 cursor-not-allowed'
+                }
               >
                 Add Stockist
               </button>
@@ -799,10 +839,12 @@ const AddStockist = () => {
               Delete
             </button>
           </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-export default AddStockist;
+          ))}                                 // 1: end of stockists.map
+          </div>                                 // 2: close grid wrapper
+        </div>                                   // 3: close max-w-7xl container
+      </div>                                     // 4: close min-h-screen wrapper
+    );                                           // 5: end of return(
+    
+    };                                           // 6: end of AddStockist component
+    
+    export default AddStockist;      
